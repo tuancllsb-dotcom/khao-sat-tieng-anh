@@ -16,9 +16,10 @@ st.set_page_config(
 # 🧠 "Muốn biết phải hỏi, muốn giỏi phải học." - Bộ não cốt lõi luôn đồng hành cùng thầy cô khám phá tri thức mới.
 MASTER_PROMPT = """
 # ROLE & PERSONALITY
-You are the official interactive "English Proficiency Assessment Application for Teachers", inheriting 20+ years of expertise in Applied Linguistics, Language Pedagogy, and Cognitive Psychology. Your absolute objective is to train the teacher (addressed respectfully as "thầy cô") to effortlessly pass their 4-skill standardized exam using Reverse Engineering and Real-Time Feedback.
+You are the official interactive "English Proficiency Assessment Application for Teachers", specialized in Language Pedagogy and Cognitive Psychology. Your absolute objective is to train the teacher (addressed respectfully as "thầy cô") to effortlessly pass their 4-skill standardized exam using Reverse Engineering and Real-Time Feedback. 
+CRITICAL STRICT CONSTRAINT: Do NOT output any long welcome messages, prefaces, introductions, or mention your years of experience. Cut all wordy paragraphs entirely.
 
-# NUMERIC NAVIGATION SYSTEM
+# NUMERIC NAVIGATION SYSTEM (EASY TO UNDERSTAND)
 You must listen to numeric inputs from the user or system to route the exam sections immediately:
 - Input `1`: SECTION 1: LISTENING (12 Questions total)
 - Input `2`: SECTION 2: READING (12 Questions total)
@@ -43,15 +44,28 @@ Example layout format:
 [🎵 IPA] /ˌedʒuˈkeɪʃn/ /ɪz/ /ðə/ /kiː/ /tə/ /səkˈses/
 [🇻🇳 VIE] Giáo dục là chìa khóa dẫn tới thành công.
 
-# RAW AUDIO PROCESSING & SPEECH-TO-TEXT PROTOCOL
-When you receive raw audio data input from the microphone, you MUST execute these steps in absolute order to prevent text-masking bugs:
-1. Display a prominent heading: `### [🗣️ TEXT ĐÃ NGHE ĐƯỢC TỪ MICROPHONE]`
-2. Output the exact English words transcribed from the teacher's speech.
-3. Apply the 3-LINE INTERLINEAR LAYOUT (ENG -> IPA -> VIE) directly onto that transcribed speech text.
-4. Provide [🎯 CHẤM ĐIỂM PHÁT ÂM] and [💼 ỨNG DỤNG THỰC CHIẾN] based on their voice input.
+# RAW AUDIO PROCESSING & VISUAL SPEECH-TO-TEXT PROTOCOL
+When you receive raw audio data input from the microphone, you must process it as a strict visual pronunciation judge:
+1. Compare the teacher's spoken audio words against the target lesson text word-by-word.
+2. Render the final result using custom inline HTML blocks. 
+3. For words pronounced correctly, display them clearly using the `.txt-correct` style.
+4. For words pronounced incorrectly or missed, you MUST apply a CSS blur filter (`filter: blur(2px); opacity: 0.4;`) to make the word physically blurry on the screen, and immediately render its exact standard IPA phonetic transcription in bright red directly underneath that blurred word (`.ipa-practice`) so the teacher can practice it on the spot.
 
 # AUDIO SYNCHRONIZATION TAGS
 Wrap English text segments meant for listening practice between [AUDIO_START] and [AUDIO_END] tags. Do not autoplay.
+
+# INITIALIZATION EXECUTION
+When you receive the message "START_APPLICATION", you MUST output exactly this text in Vietnamese and NOTHING ELSE (no long greetings, no introductions, no explanations, no meta-commentary):
+"Hệ thống Khảo Sát Tiếng Anh Thực Chiến Dành Cho Giáo Viên đã sẵn sàng.
+
+[SƠ ĐỒ TƯ DUY LỘ TRÌNH]
+10 Ngày Học ──> Master Khung xương vạn năng ──> Giải phẫu cú pháp 4 Hộp ──> Chinh phục kỳ thi.
+
+Vui lòng chọn nhanh phần thi bằng các nút ở thanh bên hoặc gõ phím số từ bàn phím:
+- Nhập `1`: Phần thi NGHE (Listening)
+- Nhập `2`: Phần thi ĐỌC (Reading)
+- Nhập `3`: Phần thi VIẾT (Writing)
+- Nhập `4`: Phần thi NÓI (Speaking)"
 """
 
 # 💾 "Trẻ vui học hỏi, già thích suy tư." - Khởi tạo cấu trúc bộ nhớ lưu trữ bền vững để theo dõi tiến độ phòng thi.
@@ -108,9 +122,9 @@ st.sidebar.markdown("---")
 st.sidebar.markdown("### 🎤 PHẦN THI NÓI - THU ÂM")
 audio_data = st.sidebar.audio_input("Bấm nút tròn để ghi âm bài làm trực tiếp:")
 
-# 🏛 "Vì lợi ích mười năm thì phải trồng cây, vì lợi ích trăm năm thì phải trồng người." - Giảng đường số hóa hiện đại.
+# 🏛️ "Vì lợi ích mười năm thì phải trồng cây, vì lợi ích trăm năm thì phải trồng người." - Giảng đường số hóa hiện đại.
 st.title("🎓 ỨNG DỤNG KHẢO SÁT TIẾNG ANH CHO GIÁO VIÊN")
-st.caption("Giao diện tối ưu Cloud Run & Win.exe - Cấu trúc 3 dòng Interlinear song song & Phản hồi đáp án thông minh")
+st.caption("Giao diện tối ưu Cloud Run & Win.exe - Cấu trúc tinh gọn hỏa tốc & Công nghệ mờ chữ phát âm lỗi")
 st.markdown("---")
 
 # 📊 "Ngọc kia chuốt mới nên đồ, người ta học mới biết cơ biết điều." - Bảng tiến độ, thời gian đếm ngược trực quan.
@@ -129,7 +143,7 @@ with dash_col3:
 
 st.markdown("---")
 
-# 🌟 "Vạn sự khởi đầu nan." - Tự động kích hoạt hệ thống lời chào mở màn từ bộ não siêu trí tuệ nhân tạo.
+# 🌟 "Vạn sự khởi đầu nan." - Tự động kích hoạt hệ thống từ bộ não siêu trí tuệ nhân tạo (Đã cắt bỏ đoạn chào dài dòng).
 if "initialized" not in st.session_state and api_key:
     try:
         genai.configure(api_key=api_key)
@@ -161,7 +175,7 @@ def play_audio_safely(text_content):
 # 📜 "Học đi đôi với hành, kiến thức khai sáng tương lai." - Hiển thị dòng lịch sử bài làm bám sát cấu trúc trực quan.
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
-        st.markdown(message["content"])
+        st.markdown(message["content"], unsafe_allow_html=True)
         if message["role"] == "assistant":
             play_audio_safely(message["content"])
 
@@ -187,7 +201,7 @@ def send_exam_data(prompt_text, audio_file=None, is_nav=False):
         if audio_file is not None:
             st.session_state.messages.append({"role": "user", "content": "🎤 [Thầy cô đã nộp bài thi nói bằng giọng âm trực tiếp]"})
             
-            # 🛠️ CÔNG NGHỆ INLINE_DATA: Truyền trực tiếp luồng dữ liệu byte gốc từ Chrome giúp Gemini bóc băng chữ viết chuẩn xác
+            # 🛠️ CÔNG NGHỆ INLINE_DATA: Truyền trực tiếp dữ liệu byte gốc giúp triệt tiêu hoàn toàn lỗi đơ luồng âm thanh
             formatted_contents.append({
                 "role": "user",
                 "parts": [
@@ -208,7 +222,7 @@ def send_exam_data(prompt_text, audio_file=None, is_nav=False):
             with st.spinner("Hệ thống đang giải phẫu cấu trúc câu chi tiết..."):
                 response = model.generate_content(contents=formatted_contents)
                 response_text = response.text
-                st.markdown(response_text)
+                st.markdown(response_text, unsafe_allow_html=True)
                 play_audio_safely(response_text)
                 
     except Exception as e:
@@ -224,13 +238,24 @@ def send_exam_data(prompt_text, audio_file=None, is_nav=False):
 if nav_action:
     send_exam_data(nav_action, is_nav=True)
 
-# 🚀 Nộp bài thi nói: Ép hiển thị text nghe được đầu tiên, sau đó băm 3 dòng interlinear bài làm.
+# 🚀 Nộp bài thi nói: Ép hiển thị text nghe được, tự động áp mã nhúng CSS để làm mờ từ phát âm sai và chèn IPA đỏ phía dưới
 if audio_data is not None:
     if st.sidebar.button("🚀 NỘP BÀI THI NÓI", use_container_width=True):
-        send_exam_data(
-            "Đây là dữ liệu giọng nói của tôi. Nhiệm vụ của bạn: 1. Hãy bóc băng chuyển đổi âm thanh này thành chữ viết tiếng Anh chính xác hiển thị ngay dưới mục [🗣️ TEXT ĐÃ NGHE ĐƯỢC TỪ MICROPHONE]. 2. Áp dụng cấu trúc 3 dòng Interlinear (ENG -> IPA -> VIE) cho đoạn văn bản đó. 3. Tiến hành giải phẫu ngữ pháp chi tiết.", 
-            audio_file=audio_data
-        )
+        speech_command = """
+        Đây là dữ liệu giọng nói trực tiếp của tôi. Nhiệm vụ của bạn:
+        1. Phân tích phát âm chi tiết bằng cách xuất ra một đoạn mã HTML duy nhất (không chứa các ký tự mã khối ```html) áp dụng cấu trúc CSS sau:
+           <style>
+              .word-group { display: inline-block; text-align: center; margin-right: 14px; margin-bottom: 18px; vertical-align: top; }
+              .txt-correct { font-size: 19px; color: #2c3e50; font-weight: bold; }
+              .txt-wrong { font-size: 19px; color: #95a5a6; filter: blur(1.5px); opacity: 0.35; font-weight: bold; }
+              .ipa-practice { font-size: 13px; color: #e74c3c; font-family: monospace; display: block; margin-top: 5px; }
+           </style>
+        2. Duyệt từng từ trong câu:
+           - Từ nào phát âm ĐÚNG: bọc trong <div class='word-group'><span class='txt-correct'>Từ_Gốc</span></div>
+           - Từ nào phát âm SAI hoặc CHƯA ĐẠT: bọc trong <div class='word-group'><span class='txt-wrong'>Từ_Gốc</span><span class='ipa-practice'>/Phiên_Âm_Mẫu/</span></div>
+        3. Bên dưới khối HTML đó, hãy đưa ra lời nhận xét ngắn gọn, động viên bằng tiếng Việt và chấm điểm trên thang điểm 100.
+        """
+        send_exam_data(speech_command, audio_file=audio_data)
 
 # 📝 "Nét chữ nết người, trí tuệ tỏa sáng." - Khung nhận câu trả lời (Gõ số nhanh 1, 2, 3, 4 hoặc dán đáp án trắc nghiệm/bài viết).
 if text_input := st.chat_input("Nhập phím số phần thi (1, 2, 3, 4), đáp án trắc nghiệm hoặc bài viết tại đây..."):  
