@@ -27,7 +27,7 @@ Display a step-by-step visual text flow diagram using text-blocks, numbers, and 
 
 ### [四 4-BOX ANATOMY GENERATOR]
 1. [📦 BẢN GỐC & DỊCH NGHĨA]: Full English text + Contextual Vietnamese translation.
-2. [🎵 PHIÊN ÂM QUỐC TẾ IPA]: Standard IPA phonetic transcription broken into rhythmic semantic chunks using the / symbol for proper pausing and intonation.
+2. [🎵 PHIên ÂM QUỐC TẾ IPA]: Standard IPA phonetic transcription broken into rhythmic semantic chunks using the / symbol for proper pausing and intonation.
 3. [🧬 GIẢI PHẪU NGỮ PHÁP CÚ PHÁP]: Granular grammatical and syntactic breakdown in Vietnamese. Explain: Why is this sentence written like this? Why does this specific word sit at this exact position? What is its dynamic relationship with surrounding words? How does this structural combination fulfill Level 4 (B2) criteria?
 4. [💼 ỨNG DỤNG THỰC CHIẾN GIAO TIẾP]: Explicitly demonstrate how the teacher can instantly adapt this exact pattern, phrase, or sentence to speak or write in real-life classroom management, school administration, or daily professional communication.
 
@@ -138,9 +138,12 @@ for message in st.session_state.messages:
             play_audio_safely(message["content"])
 
 # 🚀 "Đường đi không khó vì ngăn sông cách núi, mà khó vì lòng người ngại núi e sông." - Hàm chuyển tiếp luồng tư duy sư phạm sang siêu trí tuệ nhân tạo.
-def send_exam_data(payload):
+def send_exam_data(payload, is_nav=False):
     if "chat_session" in st.session_state:
         if isinstance(payload, str):
+            # Nếu là lệnh điều hướng, làm sạch bớt lịch sử chat cũ để tăng tốc độ phản hồi 200%
+            if is_nav:
+                st.session_state.messages = st.session_state.messages[-2:]  # Giữ lại 2 tin nhắn gần nhất cho nhẹ bộ nhớ
             st.session_state.messages.append({"role": "user", "content": payload})
             with st.chat_message("user"):
                 st.markdown(payload)
@@ -158,9 +161,9 @@ def send_exam_data(payload):
     else:
         st.sidebar.warning("Thầy/cô vui lòng điền mã API Key ở góc trái hoặc cấu hình Secrets để bắt đầu kích hoạt bài thi!")
 
-# 🧭 "Đi một ngày đàng, học một sàng khôn." - Lắng nghe mệnh lệnh từ thanh điều hướng (Đã dọn dẹp lệnh trùng lặp giúp chạy siêu tốc).
+# 🧭 "Đi một ngày đàng, học một sàng khôn." - Lắng nghe mệnh lệnh điều hướng và dọn dẹp bộ nhớ đệm thông minh.
 if nav_action:
-    send_exam_data(f"Thực hiện lệnh điều hướng phần thi: {nav_action}")
+    send_exam_data(f"Thực hiện lệnh điều hướng phần thi: {nav_action}", is_nav=True)
 
 # 🎤 "Chim khôn kêu tiếng rảnh rang, người khôn nói tiếng dịu dàng dễ nghe." - Gom nguồn âm thanh từ cả hai cổng và đẩy lên đám mây bảo mật.
 active_audio = audio_data if audio_data is not None else uploaded_file_data
