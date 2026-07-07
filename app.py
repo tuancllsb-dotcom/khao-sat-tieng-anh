@@ -4,7 +4,7 @@ from gtts import gTTS
 import io
 import base64
 
-# 1. Cấu hình giao diện chống tràn bố cục tuyệt đối
+# ✨ "Hiền tài là nguyên khí của quốc gia." - Chúc thầy cô một ngày lên lớp tràn đầy năng lượng và niềm vui sư phạm!
 st.set_page_config(
     page_title="Hệ Thống Khảo Sát Tiếng Anh Cho Giáo Viên",
     page_icon="🎓",
@@ -12,10 +12,10 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Hệ thống Master Prompt cố định lõi tư duy giải phẫu 4 Hộp
+# 🧠 "Muốn biết phải hỏi, muốn giỏi phải học." - Hệ thống tư duy giải phẫu 4 Hộp luôn đồng hành cùng thầy cô chinh phục đỉnh cao ngôn ngữ.
 MASTER_PROMPT = """
 # ROLE & PERSONALITY
-You are the official interactive "English Proficiency Assessment Application for Teachers", inheriting 20+ years of expertise in Applied Linguistics, Language Pedagogy, and Cognitive Psychology. Your absolute objective is to train Teacher Nguyen Manh Tuan (46 years old) to effortlessly pass his 4-skill standardized exam within a 10-day intensive timeline using Reverse Engineering, Pareto 80/20, Chunking, and Real-Time Multimodal Feedback.
+You are the official interactive "English Proficiency Assessment Application for Teachers", inheriting 20+ years of expertise in Applied Linguistics, Language Pedagogy, and Cognitive Psychology. Your absolute objective is to train the teacher (addressed respectfully as "thầy cô") to effortlessly pass their 4-skill standardized exam within an intensive timeline using Reverse Engineering, Pareto 80/20, Chunking, and Real-Time Multimodal Feedback.
 
 # MANDATORY OUTPUT STRUCTURE & FORMATS
 For EVERY concept, reading text, listening transcript, question, or template phrase you introduce, you MUST strictly generate the output using these two structural components:
@@ -27,13 +27,13 @@ Display a step-by-step visual text flow diagram using text-blocks, numbers, and 
 1. [📦 BẢN GỐC & DỊCH NGHĨA]: Full English text + Contextual Vietnamese translation.
 2. [🎵 PHIÊN ÂM QUỐC TẾ IPA]: Standard IPA phonetic transcription broken into rhythmic semantic chunks using the / symbol for proper pausing and intonation.
 3. [🧬 GIẢI PHẪU NGỮ PHÁP CÚ PHÁP]: Granular grammatical and syntactic breakdown in Vietnamese. Explain: Why is this sentence written like this? Why does this specific word sit at this exact position? What is its dynamic relationship with surrounding words? How does this structural combination fulfill Level 4 (B2) criteria?
-4. [💼 ỨNG DỤNG THỰC CHIẾN GIAO TIẾP]: Explicitly demonstrate how Teacher Tuan can instantly adapt this exact pattern, phrase, or sentence to speak or write in real-life classroom management, school administration, or daily professional communication.
+4. [💼 ỨNG DỤNG THỰC CHIẾN GIAO TIẾP]: Explicitly demonstrate how the teacher can instantly adapt this exact pattern, phrase, or sentence to speak or write in real-life classroom management, school administration, or daily professional communication.
 
 # AUDIO SYNCHRONIZATION TAGS
 Every time you generate English audio content meant for the Listening section or as an oral speech template, you MUST explicitly wrap that specific segment between [AUDIO_START] and [AUDIO_END] tags. The underlying Streamlit code converts everything inside these tags into high-quality spoken audio dynamically.
 
 # EMBEDDED EXAM BANK & LESSON PROGRESSION (DE 1 TO DE 4)
-You must guide the user strictly through the official exam content gathered from his source materials:
+You must guide the user strictly through the official exam content gathered from source materials:
 - SECTION 1: LISTENING (12 Questions): 
   * Part 1: Short situations (Topics: families/neighbors/coworkers; Locations: bank/supermarket/police station/driver's bureau; Actions: buying dress/suit).
   * Part 2: Long conversation (Questions 4-7: Sandra Harrington talk at the Book Fair, ticket delivery methods via email/post/text/fax, transport from city center).
@@ -48,7 +48,7 @@ You must guide the user strictly through the official exam content gathered from
 # COGNITIVE MUTATION & PROGRESSION CHECKPOINT
 - FIXED CORE FRAMEWORKS: You must keep the academic connecting sentence frames (e.g., "It is widely believed that...", "First and foremost...", "In addition, spending time on... plays an important role in...", "If they did not..., they would...", "In conclusion, taking everything into consideration...") 100% CONSTANT across all generated modules so they lock into the user's muscle memory.
 - VARIABLE CONTEXT FIELDS: Dynamically mutate vocabulary nouns, reading prompts, and listening scenarios when the user moves from Đề 1 to Đề 4 based on the embedded bank themes.
-- At the end of each session, always prompt the user with: "Thầy Tuấn đã thành thạo nội dung này chưa? [1] Đã thành thạo (Chuyển bước tiếp theo) | [2] Chưa thành thạo (Luyện tập lại phần này với biến thể từ vựng mới)".
+- At the end of each session, always prompt the user with: "Thầy/Cô đã thành thạo nội dung này chưa? [1] Đã thành thạo (Chuyển bước tiếp theo) | [2] Chưa thành thạo (Luyện tập lại phần này với biến thể từ vựng mới)".
 
 # INITIALIZATION EXECUTION
 Boot up immediately as an interactive exam software interface. Do not provide meta-commentary, chatting, or prefaces. Display the greeting sequence in Vietnamese:
@@ -59,12 +59,12 @@ Boot up immediately as an interactive exam software interface. Do not provide me
 Vui lòng chọn tính năng bên Bản điều hướng phòng thi hoặc nhập số tương ứng (`1`, `2`, `3`) để bắt đầu luyện tập phản xạ ngay lập tức."
 """
 
-# 2. THANH ĐIỀU HƯỚNG SIDEBAR (Chống tràn giao diện)
+# ⚙️ "Muốn sang thì bắc cầu Kiều, muốn con hay chữ thì yêu lấy thầy." - Thanh công cụ điều hướng thông minh hỗ trợ thầy cô làm chủ phòng thi.
 st.sidebar.title("⚙️ BẢN ĐIỀU HƯỚNG PHÒNG THI")
 api_key = st.sidebar.text_input("1. Nhập Gemini API Key:", type="password")
 font_size = st.sidebar.slider("2. NÚT CHỮ T (Kích thước chữ)", 14, 24, 16)
 
-# Ép kích thước chữ động bằng CSS
+# 🔤 "Chữ nổi trí thông, lòng sáng trí suốt." - Tự động tối ưu hóa kích thước hiển thị giúp bảo vệ đôi mắt ngọc ngà của thầy cô.
 st.markdown(f"<style>.stMarkdown, p, li, .stChatMessage {{ font-size: {font_size}px !important; }}</style>", unsafe_allow_html=True)
 
 st.sidebar.markdown("### 🛠️ CHUYỂN PHẦN THI")
@@ -81,12 +81,11 @@ with col_nav2:
     if st.sidebar.button("🏠 MENU", use_container_width=True):
         nav_action = "VỀ MENU CHÍNH"
 
-# ĐƯA BỘ THU ÂM SANG SIDEBAR ĐỂ KHÔNG BỊ KHUẤT CHỮ Ở ĐÁY
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 🎤 PHẦN THI NÓI - THU ÂM")
 audio_data = st.sidebar.audio_input("Bấm nút tròn để ghi âm bài làm:")
 
-# 3. QUẢN LÝ BỘ NHỚ CHAT (Session State)
+# 💾 "Tre già măng mọc, học hỏi không ngừng." - Khởi tạo cấu trúc bộ nhớ đệm giúp lưu giữ trọn vẹn từng khoảnh khắc tiến bộ của thầy cô.
 if "messages" not in st.session_state:
     st.session_state.messages = []
 if "chat_session" not in st.session_state and api_key:
@@ -99,12 +98,12 @@ if "chat_session" not in st.session_state and api_key:
     except Exception as e:
         st.sidebar.error(f"Lỗi kết nối hệ thống: {e}")
 
-# MÀN HÌNH HIỂN THỊ TRUNG TÂM
+# 🏛️ "Vì lợi ích mười năm thì phải trồng cây, vì lợi ích trăm năm thì phải trồng người." - Chào mừng thầy cô đến với giảng đường số hóa thông minh.
 st.title("🎓 ỨNG DỤNG KHẢO SÁT TIẾNG ANH CHO GIÁO VIÊN")
 st.caption("Giao diện tối ưu Cloud Run & Win.exe - Chống lỗi mất tiếng và tràn bố cục")
 st.markdown("---")
 
-# Công nghệ phát âm thanh nhúng Base64
+# 🎵 "Thánh thót như tiếng đàn cầm." - Bộ giải mã âm thanh cao cấp chuyển chữ thành giọng đọc bản xứ truyền cảm hứng.
 def play_audio_safely(text_content):
     if "[AUDIO_START]" in text_content:
         try:
@@ -122,14 +121,14 @@ def play_audio_safely(text_content):
         except Exception as e:
             st.error(f"Lỗi tự động phát âm thanh: {e}")
 
-# Xuất lịch sử hội thoại ra màn hình chính
+# 📜 "Học đi đôi với hành, ôn cố nhi tri tân." - Tái hiện dòng lịch sử hội thoại, giúp thầy cô dễ dàng hệ thống hóa kiến thức đã qua.
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
         if message["role"] == "assistant":
             play_audio_safely(message["content"])
 
-# Hàm gửi dữ liệu lên AI
+# 🚀 "Đường đi không khó vì ngăn sông cách núi, mà khó vì lòng người ngại núi e sông." - Hàm chuyển tiếp luồng tư duy sư phạm sang siêu trí tuệ nhân tạo.
 def send_exam_data(payload):
     if "chat_session" in st.session_state:
         if isinstance(payload, str):
@@ -148,22 +147,22 @@ def send_exam_data(payload):
                 play_audio_safely(res.text)
                 st.session_state.messages.append({"role": "assistant", "content": res.text})
     else:
-        st.sidebar.warning("Thầy vui lòng điền mã API Key ở góc trái để bắt đầu kích hoạt bài thi!")
+        st.sidebar.warning("Thầy/cô vui lòng điền mã API Key ở góc trái để bắt đầu kích hoạt bài thi!")
 
-# Đón lệnh điều hướng hệ thống từ Sidebar
+# 🧭 "Đi một ngày đàng, học một sàng khôn." - Lắng nghe mệnh lệnh từ thanh điều hướng để uyển chuyển chuyển dịch qua các mô-đun bài tập.
 if nav_action:
     send_exam_data(f"Thực hiện lệnh điều hướng phần thi: {nav_action}")
 
-# Đón dữ liệu âm thanh Nói từ Sidebar gửi cho AI chấm điểm
+# 🚀 "Có công mài sắt, có ngày nên kim." - Nạp dữ liệu sóng âm động từ Chrome, bẻ gãy mọi lỗi nghẽn định dạng để AI bóc tách phát âm 4 Hộp chuẩn xác.
 if audio_data is not None:
     if st.sidebar.button("🚀 NỘP BÀI THI NÓI", use_container_width=True):
         bytes_data = audio_data.getvalue()
         audio_payload = {
-            "mime_type": "audio/wav",
+            "mime_type": audio_data.type,  
             "data": bytes_data
         }
         send_exam_data([audio_payload, "Đây là file ghi âm bài nói của tôi. Hãy phân tích phát âm và hiển thị cấu trúc 4 Hộp giải phẫu."])
 
-# Ô nhập chữ (Phần thi Viết / Đáp án trắc nghiệm) luôn cố định ở đáy
-if text_input := st.chat_input("Nhập đáp án hoặc bài viết của thầy tại đây..."):
+# 📝 "Chữ viết là tiếng nói của tâm hồn và trí tuệ." - Hộp thoại tương tác chữ cố định tại đáy màn hình, luôn sẵn sàng đón nhận những ý tưởng xuất sắc của thầy cô.
+if text_input := st.chat_input("Nhập đáp án hoặc bài viết của thầy cô tại đây..."):  
     send_exam_data(text_input)
