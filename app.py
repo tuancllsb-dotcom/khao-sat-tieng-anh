@@ -61,7 +61,11 @@ Vui lòng chọn tính năng bên Bản điều hướng phòng thi hoặc nhậ
 
 # ⚙️ "Muốn sang thì bắc cầu Kiều, muốn con hay chữ thì yêu lấy thầy." - Thanh công cụ điều hướng thông minh hỗ trợ thầy cô làm chủ phòng thi.
 st.sidebar.title("⚙️ BẢN ĐIỀU HƯỚNG PHÒNG THI")
-api_key = st.sidebar.text_input("1. Nhập Gemini API Key:", type="password")
+# ✨ "Thuận buồm xuôi gió" - Tự động gọi mã Key bảo mật từ hệ thống để thầy cô không phải nhập tay mỗi lần mở app
+if "GEMINI_API_KEY" in st.secrets:
+    api_key = st.secrets["GEMINI_API_KEY"]
+else:
+    api_key = st.sidebar.text_input("1. Nhập Gemini API Key:", type="password")
 font_size = st.sidebar.slider("2. NÚT CHỮ T (Kích thước chữ)", 14, 24, 16)
 
 # 🔤 "Chữ nổi trí thông, lòng sáng trí suốt." - Tự động tối ưu hóa kích thước hiển thị giúp bảo vệ đôi mắt ngọc ngà của thầy cô.
