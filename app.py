@@ -92,7 +92,7 @@ if "messages" not in st.session_state:
 if "chat_session" not in st.session_state and api_key:
     try:
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-2.0-flash', system_instruction=MASTER_PROMPT)
+        model = genai.GenerativeModel('gemini-2.5-flash', system_instruction=MASTER_PROMPT)
         st.session_state.chat_session = model.start_chat(history=[])
         init_res = st.session_state.chat_session.send_message("START_APPLICATION")
         st.session_state.messages.append({"role": "assistant", "content": init_res.text})
