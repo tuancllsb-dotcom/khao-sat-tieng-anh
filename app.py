@@ -3,10 +3,10 @@ import google.generativeai as genai
 from gtts import gTTS
 import io
 import base64
-import tempfile  # 🛠️ Lời chúc "Thuận buồm xuôi gió" - Thư viện tạo file tạm thời an toàn
-import os        # 🛠️ Lời chúc "Vạn sự hanh thông" - Thư viện dọn dẹp bộ nhớ hệ thống
+import tempfile  # ✨ Lời chúc "Thuận buồm xuôi gió" - Thư viện tạo file tạm thời an toàn
+import os        # ✨ Lời chúc "Vạn sự hanh thông" - Thư viện dọn dẹp bộ nhớ hệ thống
 
-# ✨ "Hiền tài là nguyên khí của quốc gia." - Chúc thầy cô một ngày lên lớp tràn đầy năng lượng và niềm vui sư phạm!
+# ✨ "Hiền tài là nguyên khí của quốc gia." - Chúc thầy cô luôn tràn đầy năng lượng và niềm vui sư phạm!
 st.set_page_config(
     page_title="Hệ Thống Khảo Sát Tiếng Anh Cho Giáo Viên",
     page_icon="🎓",
@@ -91,7 +91,8 @@ with col_nav2:
 
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 🎤 PHẦN THI NÓI - THU ÂM")
-audio_data = st.sidebar.audio_input("Bấm nút tròn để ghi âm bài làm:")
+audio_data = st.sidebar.audio_input("Bấm nút tròn để ghi âm trực tiếp:")
+uploaded_file_data = st.sidebar.file_uploader("Hoặc tải tệp âm thanh bài nói lên tại đây:", type=["mp3", "wav", "m4a", "webm"])
 
 # 💾 "Tre già măng mọc, học hỏi không ngừng." - Khởi tạo cấu trúc bộ nhớ đệm giúp lưu giữ trọn vẹn từng khoảnh khắc tiến bộ của thầy cô.
 if "messages" not in st.session_state:
@@ -144,9 +145,9 @@ def send_exam_data(payload):
             with st.chat_message("user"):
                 st.markdown(payload)
         else:
-            st.session_state.messages.append({"role": "user", "content": "🔄 Đã nộp file ghi âm bài thi Nói."})
+            st.session_state.messages.append({"role": "user", "content": "🔄 Đã nộp tệp tin ghi âm bài thi Nói."})
             with st.chat_message("user"):
-                st.markdown("🔄 Đã nộp file ghi âm bài thi Nói.")
+                st.markdown("🔄 Đã nộp tệp tin ghi âm bài thi Nói.")
         
         with st.chat_message("assistant"):
             with st.spinner("Hệ thống đang phân tích ngữ pháp..."):
@@ -157,28 +158,25 @@ def send_exam_data(payload):
     else:
         st.sidebar.warning("Thầy/cô vui lòng điền mã API Key ở góc trái hoặc cấu hình Secrets để bắt đầu kích hoạt bài thi!")
 
-# 🧭 "Đi một ngày đàng, học một sàng khôn." - Lắng nghe mệnh lệnh từ thanh điều hướng để uyển chuyển chuyển dịch qua các mô-đun bài tập.
+# 🧭 "Đi một ngày đàng, học một sàng khôn." - Lắng nghe mệnh lệnh từ thanh điều hướng (Đã dọn dẹp lệnh trùng lặp giúp chạy siêu tốc).
 if nav_action:
     send_exam_data(f"Thực hiện lệnh điều hướng phần thi: {nav_action}")
 
-# 🎤 "Chim khôn kêu tiếng rảnh rang, người khôn nói tiếng dịu dàng dễ nghe." - Giải mã sóng âm qua Google File API, bẻ gãy mọi lỗi nghẽn định dạng Chrome.
-if audio_data is not None:
+# 🎤 "Chim khôn kêu tiếng rảnh rang, người khôn nói tiếng dịu dàng dễ nghe." - Gom nguồn âm thanh từ cả hai cổng và đẩy lên đám mây bảo mật.
+active_audio = audio_data if audio_data is not None else uploaded_file_data
+
+if active_audio is not None:
     if st.sidebar.button("🚀 NỘP BÀI THI NÓI", use_container_width=True):
-        bytes_data = audio_data.getvalue()
+        bytes_data = active_audio.getvalue()
+        file_suffix = os.path.splitext(active_audio.name)[1] if hasattr(active_audio, 'name') and active_audio.name else ".webm"
         
-        # 🛠️ Tạo một file tạm thời trên hệ thống đám mây để gói dữ liệu Chrome gửi lên
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as tmp_file:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=file_suffix) as tmp_file:
             tmp_file.write(bytes_data)
             tmp_file_path = tmp_file.name
         
         try:
-            # 🛠️ Tải thẳng file lên Google File API - Cổng lưu trữ chuyên trị định dạng ghi âm phức tạp
-            uploaded_file = genai.upload_file(path=tmp_file_path, mime_type=audio_data.type)
-            
-            # 🛠️ Gửi file đã được Google mã hóa thành công kèm câu lệnh phân tích 4 Hộp giải phẫu
+            uploaded_file = genai.upload_file(path=tmp_file_path, mime_type=active_audio.type)
             send_exam_data([uploaded_file, "Đây là file ghi âm bài nói của tôi. Hãy phân tích phát âm và hiển thị cấu trúc 4 Hộp giải phẫu."])
-            
-            # 🛠️ Giải phóng bộ nhớ máy chủ ngay lập tức sau khi gửi bài thành công
             os.unlink(tmp_file_path)
         except Exception as e:
             st.sidebar.error(f"Lỗi xử lý luồng âm thanh đám mây: {e}")
