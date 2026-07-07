@@ -3,10 +3,10 @@ import google.generativeai as genai
 from gtts import gTTS
 import io
 import base64
-import tempfile  # ✨ Lời chúc "Thuận buồm xuôi gió" - Thư viện tạo file tạm thời an toàn
-import os        # ✨ Lời chúc "Vạn sự hanh thông" - Thư viện dọn dẹp bộ nhớ hệ thống
+import tempfile  # ✨ "Thuận buồm xuôi gió" - Thư viện tạo tệp tạm thời an toàn cho hệ thống đám mây.
+import os        # ✨ "Vạn sự hanh thông" - Thư viện dọn dẹp và giải phóng bộ nhớ máy chủ hỏa tốc.
 
-# ✨ "Hiền tài là nguyên khí của quốc gia." - Chúc thầy cô luôn tràn đầy năng lượng và niềm vui sư phạm!
+# ✨ "Hiền tài là nguyên khí của quốc gia." - Chúc thầy cô luôn tràn đầy năng lượng và niềm vui trên bục giảng!
 st.set_page_config(
     page_title="Hệ Thống Khảo Sát Tiếng Anh Cho Giáo Viên",
     page_icon="🎓",
@@ -14,7 +14,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# 🧠 "Muốn biết phải hỏi, muốn giỏi phải học." - Hệ thống tư duy giải phẫu 4 Hộp luôn đồng hành cùng thầy cô chinh phục đỉnh cao ngôn ngữ.
+# 🧠 "Muốn biết phải hỏi, muốn giỏi phải học." - Hệ thống tư duy 4 Hộp giải phẫu cốt lõi giúp thầy cô làm chủ ngôn ngữ.
 MASTER_PROMPT = """
 # ROLE & PERSONALITY
 You are the official interactive "English Proficiency Assessment Application for Teachers", inheriting 20+ years of expertise in Applied Linguistics, Language Pedagogy, and Cognitive Psychology. Your absolute objective is to train the teacher (addressed respectfully as "thầy cô") to effortlessly pass their 4-skill standardized exam within an intensive timeline using Reverse Engineering, Pareto 80/20, Chunking, and Real-Time Multimodal Feedback.
@@ -27,7 +27,7 @@ Display a step-by-step visual text flow diagram using text-blocks, numbers, and 
 
 ### [四 4-BOX ANATOMY GENERATOR]
 1. [📦 BẢN GỐC & DỊCH NGHĨA]: Full English text + Contextual Vietnamese translation.
-2. [🎵 PHIên ÂM QUỐC TẾ IPA]: Standard IPA phonetic transcription broken into rhythmic semantic chunks using the / symbol for proper pausing and intonation.
+2. [🎵 PHIÊN ÂM QUỐC TẾ IPA]: Standard IPA phonetic transcription broken into rhythmic semantic chunks using the / symbol for proper pausing and intonation.
 3. [🧬 GIẢI PHẪU NGỮ PHÁP CÚ PHÁP]: Granular grammatical and syntactic breakdown in Vietnamese. Explain: Why is this sentence written like this? Why does this specific word sit at this exact position? What is its dynamic relationship with surrounding words? How does this structural combination fulfill Level 4 (B2) criteria?
 4. [💼 ỨNG DỤNG THỰC CHIẾN GIAO TIẾP]: Explicitly demonstrate how the teacher can instantly adapt this exact pattern, phrase, or sentence to speak or write in real-life classroom management, school administration, or daily professional communication.
 
@@ -58,13 +58,13 @@ Boot up immediately as an interactive exam software interface. Do not provide me
 [SƠ ĐỒ TƯ DUY LỘ TRÌNH]
 10 Ngày Học ──> Master 6 Khung xương vạn năng cố định ──> Biến đổi đề thích ứng (Đề 1 đến Đề 4) ──> Giải phẫu cú pháp 4 Hộp ──> Chinh phục kỳ thi & Giao tiếp thực tế.
 
-Vui lòng chọn tính năng bên Bản điều hướng phòng thi hoặc nhập số tương ứng (`1`, `2`, `3`) để bắt đầu luyện tập phản xạ ngay lập tức."
+Vui lòng chọn tính năng bên Bản điều hướng phòng thi hoặc nhập số tương ứng để bắt đầu luyện tập phản xạ ngay lập tức."
 """
 
-# ⚙️ "Muốn sang thì bắc cầu Kiều, muốn con hay chữ thì yêu lấy thầy." - Thanh công cụ điều hướng thông minh hỗ trợ thầy cô làm chủ phòng thi.
+# ⚙️ "Muốn sang thì bắc cầu Kiều, muốn con hay chữ thì yêu lấy thầy." - Thanh bảng điều hướng trợ thủ đắc lực cho thầy cô.
 st.sidebar.title("⚙️ BẢN ĐIỀU HƯỚNG PHÒNG THI")
 
-# 🔒 "Thuận buồm xuôi gió" - Tự động gọi mã Key bảo mật từ hệ thống Secrets để thầy cô không phải nhập tay mỗi lần mở app
+# 🔒 "Thuận buồm xuôi gió" - Hệ thống tự động kiểm tra két sắt bảo mật Secrets để kích hoạt phòng thi mà không cần gõ phím.
 if "GEMINI_API_KEY" in st.secrets:
     api_key = st.secrets["GEMINI_API_KEY"]
 else:
@@ -72,7 +72,7 @@ else:
 
 font_size = st.sidebar.slider("2. NÚT CHỮ T (Kích thước chữ)", 14, 24, 16)
 
-# 🔤 "Chữ nổi trí thông, lòng sáng trí suốt." - Tự động tối ưu hóa kích thước hiển thị giúp bảo vệ đôi mắt ngọc ngà của thầy cô.
+# 🔤 "Học hải vô biên, cần cần vi lộ." - Tự động đồng bộ kích thước hiển thị giúp nâng niu và bảo vệ thị lực của thầy cô.
 st.markdown(f"<style>.stMarkdown, p, li, .stChatMessage {{ font-size: {font_size}px !important; }}</style>", unsafe_allow_html=True)
 
 st.sidebar.markdown("### 🛠️ CHUYỂN PHẦN THI")
@@ -90,29 +90,30 @@ with col_nav2:
         nav_action = "VỀ MENU CHÍNH"
 
 st.sidebar.markdown("---")
-st.sidebar.markdown("### 🎤 PHẦN THI NÓI - THU ÂM")
-audio_data = st.sidebar.audio_input("Bấm nút tròn để ghi âm trực tiếp:")
-uploaded_file_data = st.sidebar.file_uploader("Hoặc tải tệp âm thanh bài nói lên tại đây:", type=["mp3", "wav", "m4a", "webm"])
+st.sidebar.markdown("### 🎤 PHẦN THI NÓI - THU ÂM TRỰC TIẾP")
+audio_data = st.sidebar.audio_input("Bấm nút tròn để ghi âm bài làm:")
 
-# 💾 "Tre già măng mọc, học hỏi không ngừng." - Khởi tạo cấu trúc bộ nhớ đệm giúp lưu giữ trọn vẹn từng khoảnh khắc tiến bộ của thầy cô.
+# 💾 "Tre già măng mọc, học hỏi không ngừng." - Khởi tạo cấu trúc bộ nhớ lưu trữ bài làm bền vững cho thầy cô.
 if "messages" not in st.session_state:
     st.session_state.messages = []
-if "chat_session" not in st.session_state and api_key:
-    try:
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-2.5-flash', system_instruction=MASTER_PROMPT)
-        st.session_state.chat_session = model.start_chat(history=[])
-        init_res = st.session_state.chat_session.send_message("START_APPLICATION")
-        st.session_state.messages.append({"role": "assistant", "content": init_res.text})
-    except Exception as e:
-        st.sidebar.error(f"Lỗi kết nối hệ thống: {e}")
 
-# 🏛️ "Vì lợi ích mười năm thì phải trồng cây, vì lợi ích trăm năm thì phải trồng người." - Chào mừng thầy cô đến với giảng đường số hóa thông minh.
+# 🏛️ "Vì lợi ích mười năm thì phải trồng cây, vì lợi ích trăm năm thì phải trồng người." - Không gian giảng đường số hóa.
 st.title("🎓 ỨNG DỤNG KHẢO SÁT TIẾNG ANH CHO GIÁO VIÊN")
 st.caption("Giao diện tối ưu Cloud Run & Win.exe - Chống lỗi mất tiếng và tràn bố cục")
 st.markdown("---")
 
-# 🎵 "Thánh thót như tiếng đàn cầm." - Bộ giải mã âm thanh cao cấp chuyển chữ thành giọng đọc bản xứ truyền cảm hứng.
+# 🌟 "Vạn sự khởi đầu nan." - Tự động kích hoạt hệ thống lời chào mở màn từ bộ não siêu trí tuệ nhân tạo.
+if "initialized" not in st.session_state and api_key:
+    try:
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel('gemini-2.5-flash', system_instruction=MASTER_PROMPT)
+        init_res = model.generate_content("START_APPLICATION")
+        st.session_state.messages.append({"role": "assistant", "content": init_res.text})
+        st.session_state.initialized = True
+    except Exception as e:
+        st.sidebar.error(f"Lỗi kết nối hệ thống: {e}")
+
+# 🎵 "Thánh thót như tiếng đàn cầm." - Bộ chuyển đổi tần số âm thanh tự động, truyền cảm hứng phát âm chuẩn bản xứ.
 def play_audio_safely(text_content):
     if "[AUDIO_START]" in text_content:
         try:
@@ -130,60 +131,70 @@ def play_audio_safely(text_content):
         except Exception as e:
             st.error(f"Lỗi tự động phát âm thanh: {e}")
 
-# 📜 "Học đi đôi với hành, ôn cố nhi tri tân." - Tái hiện dòng lịch sử hội thoại, giúp thầy cô dễ dàng hệ thống hóa kiến thức đã qua.
+# 📜 "Học đi đôi với hành, ôn cố nhi tri tân." - Lưu lại trọn vẹn tiến trình, hiển thị bài làm và điểm số trực quan trên màn hình chính.
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
         if message["role"] == "assistant":
             play_audio_safely(message["content"])
 
-# 🚀 "Đường đi không khó vì ngăn sông cách núi, mà khó vì lòng người ngại núi e sông." - Hàm chuyển tiếp luồng tư duy sư phạm sang siêu trí tuệ nhân tạo.
-def send_exam_data(payload, is_nav=False):
-    if "chat_session" in st.session_state:
-        if isinstance(payload, str):
-            # Nếu là lệnh điều hướng, làm sạch bớt lịch sử chat cũ để tăng tốc độ phản hồi 200%
-            if is_nav:
-                st.session_state.messages = st.session_state.messages[-2:]  # Giữ lại 2 tin nhắn gần nhất cho nhẹ bộ nhớ
-            st.session_state.messages.append({"role": "user", "content": payload})
-            with st.chat_message("user"):
-                st.markdown(payload)
-        else:
-            st.session_state.messages.append({"role": "user", "content": "🔄 Đã nộp tệp tin ghi âm bài thi Nói."})
-            with st.chat_message("user"):
-                st.markdown("🔄 Đã nộp tệp tin ghi âm bài thi Nói.")
+# 🚀 "Đường tuy ngắn không đi không đến, việc tuy nhỏ không làm không nên." - Bộ xử lý trung tâm, đồng bộ dữ liệu sạch sang Gemini.
+def send_exam_data(prompt_text, audio_file=None, is_nav=False):
+    if not api_key:
+        st.sidebar.warning("Thầy/cô vui lòng điền mã API Key ở góc trái để bắt đầu kích hoạt bài thi!")
+        return
         
+    try:
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel('gemini-2.5-flash', system_instruction=MASTER_PROMPT)
+        
+        # 🧭 "Đi một ngày đàng học một sàng khôn." - Tối ưu hóa bộ nhớ điều hướng giúp hệ thống vận hành trơn tru, không bị nghẽn.
+        if is_nav:
+            st.session_state.messages = [msg for msg in st.session_state.messages if msg["role"] == "assistant"][-1:]
+        
+        # 🔒 Bảo vệ dữ liệu: Chỉ đóng gói lịch sử dạng văn bản thuần túy để triệt tiêu hoàn toàn lỗi 400/404 của file cũ.
+        formatted_contents = []
+        for msg in st.session_state.messages[-6:]:
+            role = "user" if msg["role"] == "user" else "model"
+            formatted_contents.append({"role": role, "parts": [msg["content"]]})
+        
+        # 🎤 "Lời nói chẳng mất tiền mua, lựa lời mà nói cho vừa lòng nhau." - Xử lý luồng nộp bài ghi âm trực tiếp an toàn.
+        if audio_file is not None:
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as tmp_file:
+                tmp_file.write(audio_file.getvalue())
+                tmp_file_path = tmp_file.name
+            
+            try:
+                uploaded_file = genai.upload_file(path=tmp_file_path, mime_type=audio_file.type)
+                st.session_state.messages.append({"role": "user", "content": "🎤 [Thầy cô đã nộp bài thi nói bằng giọng âm trực tiếp]"})
+                formatted_contents.append({"role": "user", "parts": [uploaded_file, prompt_text]})
+            finally:
+                if os.path.exists(tmp_file_path):
+                    os.unlink(tmp_file_path)
+        else:
+            st.session_state.messages.append({"role": "user", "content": prompt_text})
+            formatted_contents.append({"role": "user", "parts": [prompt_text]})
+        
+        # 🧠 Khởi động bộ não chấm điểm và giải phẫu 4 Hộp cấu trúc toàn vẹn.
         with st.chat_message("assistant"):
-            with st.spinner("Hệ thống đang phân tích ngữ pháp..."):
-                res = st.session_state.chat_session.send_message(payload)
-                st.markdown(res.text)
-                play_audio_safely(res.text)
-                st.session_state.messages.append({"role": "assistant", "content": res.text})
-    else:
-        st.sidebar.warning("Thầy/cô vui lòng điền mã API Key ở góc trái hoặc cấu hình Secrets để bắt đầu kích hoạt bài thi!")
+            with st.spinner("Hệ thống đang phân tích phát âm và cấu trúc ngữ pháp..."):
+                response = model.generate_content(contents=formatted_contents)
+                st.markdown(response.text)
+                play_audio_safely(response.text)
+                st.session_state.messages.append({"role": "assistant", "content": response.text})
+                
+    except Exception as e:
+        st.error(f"❌ Hệ thống thông báo: {e}. Vui lòng kiểm tra lại thiết bị hoặc nhấn F5 để làm mới phòng thi.")
 
-# 🧭 "Đi một ngày đàng, học một sàng khôn." - Lắng nghe mệnh lệnh điều hướng và dọn dẹp bộ nhớ đệm thông minh.
+# 🧭 Điều hướng bài làm hỏa tốc.
 if nav_action:
     send_exam_data(f"Thực hiện lệnh điều hướng phần thi: {nav_action}", is_nav=True)
 
-# 🎤 "Chim khôn kêu tiếng rảnh rang, người khôn nói tiếng dịu dàng dễ nghe." - Gom nguồn âm thanh từ cả hai cổng và đẩy lên đám mây bảo mật.
-active_audio = audio_data if audio_data is not None else uploaded_file_data
-
-if active_audio is not None:
+# 🚀 Nộp bài thi nói trực tiếp từ Microphone trình duyệt Chrome.
+if audio_data is not None:
     if st.sidebar.button("🚀 NỘP BÀI THI NÓI", use_container_width=True):
-        bytes_data = active_audio.getvalue()
-        file_suffix = os.path.splitext(active_audio.name)[1] if hasattr(active_audio, 'name') and active_audio.name else ".webm"
-        
-        with tempfile.NamedTemporaryFile(delete=False, suffix=file_suffix) as tmp_file:
-            tmp_file.write(bytes_data)
-            tmp_file_path = tmp_file.name
-        
-        try:
-            uploaded_file = genai.upload_file(path=tmp_file_path, mime_type=active_audio.type)
-            send_exam_data([uploaded_file, "Đây là file ghi âm bài nói của tôi. Hãy phân tích phát âm và hiển thị cấu trúc 4 Hộp giải phẫu."])
-            os.unlink(tmp_file_path)
-        except Exception as e:
-            st.sidebar.error(f"Lỗi xử lý luồng âm thanh đám mây: {e}")
+        send_exam_data("Đây là file ghi âm bài nói của tôi. Hãy phân tích phát âm và hiển thị cấu trúc 4 Hộp giải phẫu.", audio_file=audio_data)
 
-# 📝 "Chữ viết là tiếng nói của tâm hồn và trí tuệ." - Hộp thoại tương tác chữ cố định tại đáy màn hình, luôn sẵn sàng đón nhận những ý tưởng xuất sắc của thầy cô.
+# 📝 "Nét chữ nết người, trí tuệ khai sáng tâm hồn." - Hộp chat nhận dữ liệu chữ cố định tại đáy màn hình.
 if text_input := st.chat_input("Nhập đáp án hoặc bài viết của thầy cô tại đây..."):  
     send_exam_data(text_input)
