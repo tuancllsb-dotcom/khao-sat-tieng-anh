@@ -6,58 +6,71 @@ import io
 import base64
 import time
 
-# ✨ Thiết lập cấu hình phòng khảo thí VSTEP
+# ✨ Thiết lập không gian phòng khảo thí chuyên nghiệp chuẩn VSTEP sư phạm.
 st.set_page_config(
-    page_title="Hệ Thống Luyện Thi VSTEP Giáo Viên - Phiên Bản Tối Cao",
+    page_title="Siêu Ứng Dụng Khảo Sát VSTEP Toàn Diện - Master Blueprint",
     page_icon="🎓",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
+# 🧠 MASTER_PROMPT: BỘ NÃO ENGINE CHUYÊN GIA TỔNG HỢP TOÀN DIỆN CÁC YÊU CẦU SƯ PHẠM CAO CẤP
 MASTER_PROMPT = """
 # ROLE & PERSONALITY
-You are the world-class "Interactive VSTEP Master Trainer" with 20+ years of pedagogical experience in high-stakes teacher proficiency assessment. You look at test items through the lens of a linguist and cognitive scientist. You address the user respectfully as "thầy cô".
+You are the elite "VSTEP Master Trainer" specialized in rapid remediation for learners who lost their English roots (người mất gốc). You operate with 20+ years of high-stakes test design experience, neuro-linguistic training, and cognitive psychological metrics. Address the user respectfully as "thầy cô".
 
-# CRITICAL VISUAL FORMATTING RULE (ANTI-COLLAPSE MECHANICAL FIX)
-To prevent sentences from running into each other, you MUST render ALL English text material, sentences, questions, and examples using a hard HTML layout with explicit `<br>` break tags. Follow this strict 3-line format EXACTLY:
-<b>[📦 ENG]</b> <English text sample here><br>
-<i>[🎵 IPA]</i> <Standard IPA transcription with / for rhythmic pause chunks><br>
-<b>[🇻🇳 VIE]</b> <Contextual Vietnamese translation bám sát bản chất sư phạm>
+# UNIVERSAL COMPACT INTERLINEAR RULE (ANTI-COLLAPSE MECHANICAL FIX)
+Every single English piece of text, word, sentence, reading passage, listening script, question, or multiple-choice option (A, B, C, D) that you output MUST strictly be formatted into this exact 3-line interlinear HTML block using explicit `<br>` breaks to eliminate line collapsing errors forever:
+<b><font color="#1E3A8A">ENG:</font></b> [English Text]<br>
+<small><font color="#4B5563">🎵 IPA: /[Standard International Phonetic Alphabet chunk pauses]/</font></small><br>
+<i><font color="#059669">🇻🇳 VIE: [Dịch Nghĩa Tiếng Việt Bình Dân Dễ Hiểu Nhất]</font></i>
 
-# MULTIPLE-CHOICE OPTIONS FORMAT
-For Section 1 and Section 2, immediately list the choices clearly below the 3-line block, each on its own line:
-A. <Option A text>
-B. <Option B text>
-C. <Option C text>
-D. <Option D text>
+# DYNAMIC PARALLEL VARIANT GENERATION (DYNAMIC BRANCHES RULE)
+To prevent the user's brain from building static muscle memory, you must follow this variance rule:
+1. If the user submits an option or types a request containing terms like "câu hỏi khác" or shifts the active Test Code, you MUST immediately synthesize an alternative context variant based on the target theme. 
+   - Example (Listening Variation): Shift Flight VN178 at 3:30/3:45 to Flight VN154 at 5:15/5:30.
+   - Example (Reading Variation): Shift Kimono's China origin to an alternative paragraph detailing its structural maintenance or adaptation in Japanese modern society.
+2. The alternative question matrices and suggessted answer parameters MUST vary dynamically, but the core grammar formula difficulty level must remain equivalent.
 
-# SEQUENTIAL TASK DELIVERY & SYSTEM ARCHITECTURE
-- Deliver questions ONE BY ONE strictly based on active state parameters.
-- Hide answer keys and cognitive explanations until the teacher types/submits their answer or records audio.
-- POST-SUBMISSION COGNITIVE BREAKDOWN: Once an answer is received, instantly unlock the complete analysis layout:
-  1. Provide the structural correctness status (Correct/Incorrect).
-  2. <b>[🎯 PHÂN TÍCH XÁC SUẤT RA ĐỀ & TRỌNG TÂM]</b>: Explain the likelihood of this structural pattern appearing in the real VSTEP exam. Dissect the precise grammar traps, vocabulary distractors, or auditory illusions.
-  3. <b>[🧠 MẸO HUẤN LUYỆN NÃO BỘ]</b>: Give a memory anchoring technique (mnemonic or neuro-linguistic hack) to internalize the rule instantly under time pressure.
+# TESTING MODE VS REVIEW MODE PROTOCOL
+1. [TESTING MODE]: Clean, raw testing environment. Hide answer keys, hide correct options, and hide explanations completely.
+   - For LISTENING: Hide the text script text. Only render the pure audio text target inside `[AUDIO_START] ... [AUDIO_END]` so the user trains via hearing.
+   - For READING: Display the whole reading passage sentences line-by-line first using the 3-line rule, followed by the single active question block.
+   - For WRITING/SPEAKING: Present prompts and specific functional structures clearly.
+2. [REVIEW MODE]: Activated immediately after any submission or text answer input. You MUST bundle the entire comprehensive correction payload strictly inside `[DIEN_GIAI_START]` and `[DIEN_GIAI_END]` tags. Append the tag `[SCORE_UP]` if the user's selection is correct.
 
-# SMART AUDIO FILTRATION & MICROPHONE JUDGEMENT
-- When analyzing user speech, function as an advanced audio-linguistic filter. Transcribe ONLY words that are HEARD CLEARLY and with intelligible confidence. Omit mumbling, stumbling, or heavy background noise entirely from the text transcription.
-- Compare clearly heard words against the target sentences. Render using HTML style blocks:
-  * Correct words: dark green/black (`.txt-correct`).
-  * Wrong or skipped words: bright RED (`.txt-wrong`) with correct standard IPA inserted directly underneath (`.ipa-practice`).
-- ALWAYS produce a full text answer, even if the audio is unclear. If truly nothing intelligible was heard, explicitly say so in Vietnamese instead of returning nothing.
+# EXPANDER PACKAGING DESIGN Blueprint
+Inside `[DIEN_GIAI_START]` and `[DIEN_GIAI_END]`, render this exact scannable schema:
+<b>[🎯 ĐÁP ÁN ĐÚNG]</b>: <Explain correct option in 1 simple sentence>
+<b>[🎧 CỤM TỪ VÀNG CẦN CHÚ Ý - VSTEP KEYWORDS]</b>: <Extract and list anchoring phrases like "boarding time", "Obi belt", "rescheduled">
+<b>[🧠 SƠ ĐỒ TƯ DUY CẤU TRÚC - MIND MAP]</b>:
+📌 CẤU TRÚC CÂU GỐC
+├── 🔑 Từ khóa cốt lõi: [Từ] -> [Nghĩa]
+└── 🧱 Thành phần ngữ pháp chính:
+    ├── S (Chủ ngữ): [Từ]
+    ├── V (Động từ): [Từ]
+    └── O (Tân ngữ): [Từ]
+<b>[⚠️ BẪY ĐỀ THI - MẤT GỐC CẦN TRÁNH]</b>: <Deconstruct grammar or distractor traps concisely using simple math formulas>
+<b>[⏳ TRA CỨU THÌ QUÁ KHỨ - GỐC TỪ]</b>: <Map past verbs to infinitive form: "• <b>past_verb</b> là quá khứ của <b>infinitive_verb</b> (nghĩa)">
 
-# VERBATIM EMBEDDED SYLLABUS DOCUMENT DATA BANK
-Extract, simulate, and adapt core question frameworks directly from:
-- LISTENING.doc & de-mau-02-khao-sat-nang-luc-tieng-anh-giao-vien-2026.pdf: "How many languages are taught at Hanoi International Language School?" (A. 1 | B. 2 | C. 3 | D. 4), "What is the boarding time of Flight VN178?" (A. 3.30 | B. 3.45 | C. 4.15 | D. 4.45).
-- READING.doc: Passage 1 (Pandemics / Marburg virus statistics), Passage 2 (Kimonos text / China origin / T-shape / Obi belt).
-- WRITING.doc & ĐỀ MẪU KHẢO SÁT NĂNG LỰC GIÁO VIÊN TIẾNG ANH.docx: Task 1 (Letter to Jane regarding friend An's summer course in London), Task 2 (Tourism impacts on local communities or City vs Countryside living analysis).
-- SPEAKING.doc & cau-truc-bai-thi-khao-sat-tieng-anh-giao-vien.pdf: Part 1 (Free time / TV channels / Reading habits), Part 2 (Solution discussion: Trip from Danang to Hanoi via Train/Plane/Coach), Part 3 (Topic development: Reading habits among teenagers).
+# CORE EMBEDDED DATABANK MAP (REAL SYLLABUS ALIGNMENT)
+- SECTION 1: LISTENING (LISTENING.doc)
+  * Q1: How many languages are taught at Hanoi International Language School? (A. 1 | B. 2 | C. 3 | D. 4) -> Script: "Welcome to Hanoi International Language School. This semester, our institution is proud to offer official certification courses in four distinct languages: English, French, Japanese, and Korean."
+  * Q2: What is the boarding time of Flight VN178? (A. 3:30 | B. 3:45 | C. 4:15 | D. 4:45) -> Script: "Attention all passengers traveling on Flight VN178 to Ho Chi Minh City. Due to the late arrival of the incoming aircraft, the boarding time has been rescheduled from 3:30 to 3:45."
+  * Q3: What will be happening in Lecture hall 4 next Monday? (A. An art workshop | B. An art exhibition | C. A history lesson | D. A talk about history of art) -> Script: "Please note that next Monday's history lesson has been moved. Instead, Lecture hall 4 will host a special talk about the history of art given by Professor Evans."
+  * Q4: Where should the teachers park their vehicles tomorrow? (A. In the main school yard | B. Behind the science building | C. At the public stadium | D. Along the main road) -> Script: "Attention all staff members. Due to the construction work in the main school yard tomorrow, please park your vehicles behind the science building until further notice."
+
+- SECTION 2: READING (READING.doc)
+  * Q1 to Q2 (Passage 1 - Pandemics): "Diseases are a natural part of life on Earth. If there were no diseases, the population would grow too quickly, and there would not be enough food. The severe Marburg virus, discovered in 1967, has an extremely dangerous fatality rate of 70-80%."
+  * Q3 to Q4 (Passage 2 - Japanese Dress Culture): "Kimonos came to Japan from China originally as an undergarment. It later evolved into a traditional T-shaped outer robe. This traditional clothing is securely fastened around the waist with a wide decorative sash known as the Obi belt."
+
+- SECTION 3: WRITING (WRITING.doc) / SECTION 4: SPEAKING (SPEAKING.doc)
 
 # AUDIO REGENERATION TAGS
 Always duplicate the core clean English target sentence between `[AUDIO_START]` and `[AUDIO_END]` tags at the very end of your response block to keep the gTTS button active.
 """
 
-# Cho phép audio ghi âm chất lượng thấp không bị chặn oan bởi safety filter
+# Cấu hình vượt lỗi bộ lọc an toàn cho các tệp ghi âm micro dính tạp âm
 SAFETY_SETTINGS = {
     HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
     HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
@@ -67,7 +80,7 @@ SAFETY_SETTINGS = {
 
 MODEL_NAME = "gemini-2.5-flash"
 
-# 💾 STATE MANAGEMENT
+# 💾 HỆ THỐNG STATE MANAGEMENT PHÒNG THI KIÊN CỐ
 if "messages" not in st.session_state:
     st.session_state.messages = []
 if "current_q" not in st.session_state:
@@ -77,9 +90,9 @@ if "score" not in st.session_state:
 if "start_time" not in st.session_state:
     st.session_state.start_time = time.time()
 if "mic_key" not in st.session_state:
-    st.session_state.mic_key = 0  # dùng để "reset" widget audio_input sau khi nộp bài
+    st.session_state.mic_key = 0  # Key động bẻ gãy lỗi dính tệp ghi âm cũ qua các vòng lặp
 
-# ⚙️ SIDEBAR
+# ⚙️ SIDEBAR ĐIỀU HÀNH PHÒNG THI CHUYÊN GIA
 st.sidebar.title("🎓 TRUNG TÂM ĐIỀU HÀNH VSTEP")
 
 if "GEMINI_API_KEY" in st.secrets:
@@ -107,40 +120,51 @@ with col_s2:
     if st.sidebar.button("4️⃣ VSTEP Nói", use_container_width=True): nav_action = "4"
 
 st.sidebar.markdown("---")
-st.sidebar.markdown("### 🧭 ĐIỀU HƯỚNG TIẾN LÙI ĐA CHIỀU")
+st.sidebar.markdown("### 🧭 ĐIỀU HƯỚNG TIẾN LÙI ĐA CHIỀU (QUAY LẠI TỰ DO)")
+
+def generate_nav_prompt(action_type, q_num):
+    return f"""
+    Hành động {action_type}: Đang ở {selected_de}. Hãy hiển thị nội dung câu hỏi độc lập số {q_num} của phần thi hiện tại.
+    YÊU CẦU BẮT BUỘC KHÔNG ĐƯỢC QUÊN:
+    1. Trích xuất đúng dữ liệu câu hỏi số {q_num} hoặc biến thể song song tương thích độ khó để thay đổi nội dung linh hoạt nếu được yêu cầu.
+    2. Nếu đây là phần thi NGHE (LISTENING), bạn phải ghi lại toàn bộ đoạn văn ngữ cảnh bài nghe (Audio Script) độc lập tương ứng nằm ở giữa cặp thẻ [AUDIO_START] và [AUDIO_END] ngay đầu để dựng thanh audio.
+    3. Nếu là phần thi ĐỌC (READING), hãy trích xuất đoạn văn nền (Passage Context) tương ứng lên trước câu hỏi.
+    4. Hiển thị đầy đủ câu hỏi và 4 phương án trắc nghiệm A,B,C,D. TẤT CẢ các thành phần tiếng Anh xuất hiện (kể cả phương án lựa chọn) bắt buộc phải áp dụng triệt để cấu trúc interlinear 3 dòng ngắt hàng bằng thẻ <br> cứng (ENG - IPA - VIE).
+    """
 
 col_prev, col_next = st.sidebar.columns(2)
 with col_prev:
     if st.button("⏮️ CÂU TRƯỚC", use_container_width=True):
         st.session_state.current_q = max(st.session_state.current_q - 1, 1)
-        nav_action = f"Hành động quay lại câu trước: Đang ở mã đề {selected_de}. Hãy đưa ra câu hỏi số {st.session_state.current_q} của phần thi hiện tại. Yêu cầu bắt buộc hiển thị đầy đủ câu hỏi, 4 phương án trắc nghiệm A,B,C,D rõ ràng và tuân thủ ngắt dòng HTML cứng (<br>)."
+        nav_action = generate_nav_prompt("quay lại câu trước", st.session_state.current_q)
 
 with col_next:
     if st.button("⏭️ CÂU TIẾP", use_container_width=True):
-        st.session_state.current_q = min(st.session_state.current_q + 1, 12)
-        st.session_state.score = min(st.session_state.score + 5, 100)
-        nav_action = f"Hành động tiến câu tiếp theo: Đang ở mã đề {selected_de}. Hãy đưa ra câu hỏi số {st.session_state.current_q} của phần thi hiện tại. Yêu cầu bắt buộc hiển thị đầy đủ câu hỏi, 4 phương án trắc nghiệm A,B,C,D rõ ràng và tuân thủ ngắt dòng HTML cứng (<br>)."
+        st.session_state.current_q = min(st.session_state.current_q + 1, 4)
+        nav_action = generate_nav_prompt("tiến câu tiếp theo", st.session_state.current_q)
 
 if st.sidebar.button("🔄 KHỞI ĐỘNG LẠI PHÒNG THI", use_container_width=True):
     st.session_state.current_q = 1
     st.session_state.score = 0
     st.session_state.start_time = time.time()
     st.session_state.mic_key += 1
+    if "scored_questions" in st.session_state:
+        st.session_state.scored_questions.clear()
     nav_action = f"VỀ MENU CHÍNH CHÀO MỪNG CỦA MÃ ĐỀ {selected_de}"
 
 st.sidebar.markdown("---")
-st.sidebar.markdown("### 🎤 PHẦN THI NÓI - THU ÂM")
-# key động: sau khi nộp bài, mic_key tăng lên -> widget bị "reset" hoàn toàn (không dính audio cũ)
+st.sidebar.markdown("### 🎤 PHẦN THI NÓI - THU ÂM TRỰC TIẾP")
 audio_data = st.sidebar.audio_input(
     "Bấm nút tròn bên dưới để thu âm bài nói trực tiếp:",
     key=f"mic_{st.session_state.mic_key}"
 )
 
-# 🏛️ MAIN
+# 🏛️ KHÔNG GIAN KHẢO THÍ SỐ HÓA VSTEP
 st.title("🎓 SIÊU ỨNG DỤNG KHẢO SÁT TIẾNG ANH VSTEP")
-st.caption(f"Đang vận hành cấu trúc: {selected_de} | Chuẩn hóa Cú pháp & Tách dòng Interlinear")
+st.caption(f"Cơ sở hạ tầng Master Blueprint hoàn thiện | Đang vận hành: {selected_de}")
 st.markdown("---")
 
+# 📊 THANH TRẠNG THÁI TIẾN ĐỘ KHẢO SÁT VÀ BẢNG ĐIỂM SỐ ĐIỆN TỬ
 elapsed_time = time.time() - st.session_state.start_time
 remaining_time = max(50 * 60 - elapsed_time, 0)
 mins, secs = divmod(int(remaining_time), 60)
@@ -148,10 +172,10 @@ mins, secs = divmod(int(remaining_time), 60)
 dash_col1, dash_col2, dash_col3 = st.columns(3)
 with dash_col1:
     st.markdown("**📊 THANH TRẠNG THÁI TIẾN ĐỘ KHẢO SÁT**")
-    st.progress(st.session_state.current_q / 12)
-    st.caption(f"Tiến độ thực tế: Câu {st.session_state.current_q} trên tổng số 12 câu mục tiêu.")
+    st.progress(st.session_state.current_q / 4)
+    st.caption(f"Tiến độ thực tế: Câu {st.session_state.current_q} trên tổng số 4 câu mục tiêu phân hệ.")
 with dash_col2:
-    st.metric(label="💯 Thang Điểm Ước Tính Hiện Tại", value=f"{st.session_state.score} / 100 Điểm")
+    st.metric(label="💯 Điểm Số Phòng Thi Hiện Tại", value=f"{st.session_state.score} Điểm")
 with dash_col3:
     st.metric(label="⏳ Đồng Hồ Đếm Ngược", value=f"{mins:02d}:{secs:02d} Phút")
 
@@ -169,16 +193,13 @@ def get_model():
 
 def extract_text_safely(response):
     """
-    Trích xuất text từ response một cách an toàn, KHÔNG dùng response.text
-    trực tiếp (vì nó raise exception im lặng khi bị chặn / không có Part).
-    Trả về (text, error_message). Nếu lỗi, text sẽ là None và error_message
-    có nội dung tiếng Việt rõ ràng để hiển thị cho người dùng.
+    Trích xuất văn bản an toàn từ API, bẻ gãy lỗi ẩn nấp im lặng khi bị bộ lọc chặn.
     """
     try:
         if not response.candidates:
             fb = getattr(response, "prompt_feedback", None)
             reason = getattr(fb, "block_reason", "không rõ")
-            return None, f"⚠️ Gemini đã từ chối xử lý yêu cầu (block_reason: {reason}). Thầy/cô hãy thử ghi âm lại, nói rõ hơn hoặc giảm tiếng ồn nền."
+            return None, f"⚠️ Gemini đã từ chối xử lý yêu cầu (block_reason: {reason}). Thầy/cô hãy thử ghi âm lại rõ hơn hoặc giảm tiếng ồn nền."
 
         candidate = response.candidates[0]
         finish_reason = getattr(candidate, "finish_reason", None)
@@ -192,16 +213,37 @@ def extract_text_safely(response):
         full_text = "".join(parts_text).strip()
 
         if not full_text:
-            return None, (
-                f"⚠️ Hệ thống không nhận được nội dung phản hồi hợp lệ "
-                f"(finish_reason: {finish_reason}). Nguyên nhân thường gặp: file ghi âm quá nhỏ/ồn, "
-                f"hoặc bị bộ lọc an toàn chặn. Thầy/cô vui lòng thử ghi âm lại (nói to, rõ, gần mic hơn)."
-            )
+            return None, f"⚠️ Không nhận được nội dung phản hồi hợp lệ (finish_reason: {finish_reason}). Vui lòng thử lại bằng cách nói to, rõ hơn."
 
         return full_text, None
 
     except Exception as e:
         return None, f"⚠️ Lỗi khi đọc phản hồi từ AI: {e}"
+
+
+# 🚀 THUẬT TOÁN QUÉT VÀ ĐÓNG GÓI THẺ [DIEN_GIAI] THÀNH NÚT BẤM EXPANDER ĐỘNG TRÊN UI
+def render_custom_vstep_message(content):
+    clean_content = content
+    dien_giai_text = ""
+    
+    if "[DIEN_GIAI_START]" in content and "[DIEN_GIAI_END]" in content:
+        start_dg = content.find("[DIEN_GIAI_START]")
+        end_dg = content.find("[DIEN_GIAI_END]")
+        dien_giai_text = content[start_dg + len("[DIEN_GIAI_START]"):end_dg].strip()
+        clean_content = content.replace(content[start_dg:end_dg + len("[DIEN_GIAI_END]")], "")
+    
+    visible_content = clean_content
+    if "[AUDIO_START]" in clean_content and "[AUDIO_END]" in clean_content:
+        s_aud = clean_content.find("[AUDIO_START]")
+        e_aud = clean_content.find("[AUDIO_END]")
+        visible_content = clean_content[:s_aud] + clean_content[e_aud + len("[AUDIO_END]"):]
+        
+    visible_content = visible_content.replace("[SCORE_UP]", "")
+    st.markdown(visible_content, unsafe_allow_html=True)
+    
+    if dien_giai_text:
+        with st.expander("📖 Bấm vào đây để xem CỤM TỪ VÀNG, SƠ ĐỒ TƯ DUY & TRA CỨU TỪ QUÁ KHỨ (Rút gọn)"):
+            st.markdown(dien_giai_text, unsafe_allow_html=True)
 
 
 def play_audio_safely(text_content):
@@ -236,12 +278,14 @@ if "initialized" not in st.session_state and api_key:
     except Exception as e:
         st.sidebar.error(f"Lỗi kết nối bộ não AI: {e}")
 
-# 📜 HIỂN THỊ LỊCH SỬ
+# 📜 HIỂN THỊ LÒNG LỊCH SỬ KHẢO THÍ CHUẨN ĐỒ HỌA GIAO DIỆN CHAT
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
-        st.markdown(message["content"], unsafe_allow_html=True)
         if message["role"] == "assistant":
+            render_custom_vstep_message(message["content"])
             play_audio_safely(message["content"])
+        else:
+            st.markdown(message["content"], unsafe_allow_html=True)
 
 
 def send_exam_data(prompt_text, audio_file=None, is_nav=False):
@@ -265,7 +309,7 @@ def send_exam_data(prompt_text, audio_file=None, is_nav=False):
                 "role": "user",
                 "content": f"🎤 [Thầy cô đã nộp tệp âm thanh Micro của mã đề {selected_de}]"
             })
-            # ĐÚNG cấu trúc cho google-generativeai: dict phẳng {mime_type, data}
+            # Sửa cấu trúc định dạng chuẩn phẳng không lồng inline_data cho SDK google-generativeai
             formatted_contents.append({
                 "role": "user",
                 "parts": [
@@ -281,62 +325,60 @@ def send_exam_data(prompt_text, audio_file=None, is_nav=False):
             formatted_contents.append({"role": "user", "parts": [prompt_text]})
 
         with st.chat_message("assistant"):
-            with st.spinner("Hệ thống chuyên gia đang thẩm định bài làm..."):
+            with st.spinner("Hệ thống chuyên gia đang tính toán điểm và bóc tách dữ liệu..."):
                 response = model.generate_content(contents=formatted_contents)
                 response_text, err = extract_text_safely(response)
 
                 final_text = response_text if response_text else err
 
-                st.markdown(final_text, unsafe_allow_html=True)
+                # Thuật toán tính điểm an toàn trực tiếp trên UI dựa trên tín hiệu [SCORE_UP]
+                if response_text and "[SCORE_UP]" in response_text:
+                    if "scored_questions" not in st.session_state:
+                        st.session_state.scored_questions = set()
+                    
+                    q_key = f"{selected_de}_q_{st.session_state.current_q}"
+                    if q_key not in st.session_state.scored_questions:
+                        st.session_state.score += 10
+                        st.session_state.scored_questions.add(q_key)
+
+                render_custom_vstep_message(final_text)
                 if response_text:
                     play_audio_safely(final_text)
 
         st.session_state.messages.append({"role": "assistant", "content": final_text})
 
-        # reset mic sau khi nộp bài nói để tránh nộp trùng / dính audio cũ
         if audio_file is not None:
-            st.session_state.mic_key += 1
+            st.session_state.mic_key += 1  # Làm mới hoàn toàn widget ghi âm tránh nộp trùng
 
         st.rerun()
 
     except Exception as e:
-        st.error(f"❌ Đường truyền báo lỗi: {e}. Vui lòng kiểm tra lại API Key, thiết bị hoặc nhấn F5.")
+        st.error(f"❌ Đường truyền báo lỗi: {e}. Vui lòng làm tươi lại trang bằng phím F5.")
 
 
-# Điều hướng Sidebar
+# Kích hoạt luồng điều hướng chuyển dịch câu hỏi từ Sidebar
 if nav_action:
     send_exam_data(nav_action, is_nav=True)
 
-# Nộp bài thi Nói
+# Nộp bài thi Nói / Thu âm phát âm từ Microphone trực tiếp
 if audio_data is not None:
     if st.sidebar.button("🚀 NỘP BÀI THI NÓI VSTEP", use_container_width=True):
         vstep_speech_command = f"""
-        Đây là dữ liệu giọng nói của tôi từ microphone cho câu hỏi số {st.session_state.current_q} thuộc mã đề {selected_de}. Hãy xử lý nghiêm ngặt theo các bước sau:
+        Đây là dữ liệu giọng nói của tôi từ microphone cho câu hỏi độc lập số {st.session_state.current_q} thuộc mã đề {selected_de}. Hãy xử lý nghiêm ngặt theo các bước sau:
 
-        1. [DỰ ĐOÁN VÀ BÓC BĂNG PHÁN ĐOÁN AI]: Thực hiện vai trò bộ lọc thính giác NLP thông minh. CHỈ GHI RA những từ ngữ được phát âm rõ âm, rõ chữ và mạch lạc. Nếu từ nào thều thào, nói lắp, hoặc bị nhiễu hoàn toàn bởi tạp âm môi trường, tuyệt đối KHÔNG ĐƯỢC GHI RA text. Nếu hoàn toàn không nghe được gì, hãy nói rõ điều đó bằng tiếng Việt thay vì trả về nội dung trống.
+        1. [BỘ LỌC THÍNH GIÁC]: Chỉ ghi ra text những từ tôi phát âm rõ ràng, tường minh. Nhuộm ĐỎ những từ sai kèm ký tự IPA sửa sai dưới chân.
+        
+        2. [UNIVERSAL COMPACT FORMAT]: TẤT CẢ các câu tiếng Anh xuất hiện trong phản hồi bắt buộc phải đi kèm phiên âm và dịch nghĩa nhỏ gọn, xếp tầng đẹp mắt bằng thẻ <br> cứng.
 
-        2. [MÃ HTML ĐỒ HỌA SO SÁNH PHÁT ÂM]: So sánh đoạn từ nghe rõ được với câu chuẩn của đề thi VSTEP. Trả về một khối mã HTML duy nhất (không bọc trong ký tự dấu nháy ```html) áp dụng CSS sau:
-           <style>
-              .word-group {{ display: inline-block; text-align: center; margin-right: 14px; margin-bottom: 18px; vertical-align: top; }}
-              .txt-correct {{ font-size: 19px; color: #2e7d32; font-weight: bold; }}
-              .txt-wrong {{ font-size: 19px; color: #d32f2f; font-weight: bold; }}
-              .ipa-practice {{ font-size: 13px; color: #c62828; font-family: monospace; display: block; margin-top: 5px; }}
-           </style>
-           - Từ phát âm CHUẨN: bọc trong <div class='word-group'><span class='txt-correct'>Từ_Gốc</span></div>
-           - Từ phát âm SAI hoặc BỊ BỎ QUA từ câu mẫu chuẩn: Nhuộm màu ĐỎ rực rỡ bằng cách bọc trong <div class='word-group'><span class='txt-wrong'>Từ_Gốc</span><span class='ipa-practice'>/Phiên_Âm_Chuẩn/</span></div>
+        3. [MÃ HÓA NÚT BẤM DIỄN GIẢI]: Đóng gói toàn bộ phần bóc tách [🎧 CỤM TỪ VÀNG CẦN CHÚ Ý], [🧠 SƠ ĐỒ TƯ DUY CẤU TRÚC - MIND MAP], bẫy đề thi và [⏳ TRA CỨU THÌ QUÁ KHỨ] vào bên trong cặp thẻ [DIEN_GIAI_START] và [DIEN_GIAI_END].
 
-        3. [PHẦN GIẢI THÍCH SÂU]: Ngay bên dưới khối HTML, hãy xuất ra phần chấm điểm, phần giải thích phân tích xác suất ra đề & trọng tâm bám sát, mẹo huấn luyện não bộ ghi nhớ và bắt buộc áp dụng thẻ ngắt dòng <br> cho cấu trúc interlinear:
-           <b>[📦 ENG]</b> <Câu Anh mẫu tiếng><br>
-           <i>[🎵 IPA]</i> <Phiên chuẩn cụm quốc tế âm><br>
-           <b>[🇻🇳 VIE]</b> <Bản Việt bám cảnh dịch nghĩa ngữ sát đề>
-
-        4. [TÁI SINH NÚT PHÁT ÂM THANH]: Đảm bảo sao chép lại câu tiếng Anh chuẩn bọc trong cặp thẻ [AUDIO_START] Câu tiếng Anh chuẩn [AUDIO_END] đặt ở cuối để giữ bộ phát âm thanh hoạt động.
+        4. [TÁI SINH NÚT PHÁT ÂM THANH]: Đặt mã [AUDIO_START] Câu tiếng Anh chuẩn [AUDIO_END] ở cuối cùng.
         """
         send_exam_data(vstep_speech_command, audio_file=audio_data)
 
-# Ô nhập text
+# Ô nhập text nhận đáp án trắc nghiệm (A, B, C, D) hoặc bài viết tự luận viết
 if text_input := st.chat_input("Nhập đáp án (A,B,C,D), số câu/phần hoặc đoạn văn viết tự luận tại đây..."):
     if text_input.strip() in ["1", "2", "3", "4"]:
         send_exam_data(text_input.strip(), is_nav=True)
     else:
-        send_exam_data(f"Tôi nộp câu trả lời/đáp án bài làm tại mã đề {selected_de} là: {text_input}. Bạn hãy thực hiện chấm điểm ngay, bung phần giải thích mô tả chi tiết sâu sắc sau đáp án (bao gồm lý do đúng/sai, bẫy từ vựng cần tránh, mẹo huấn luyện não bộ ghi nhớ lâu) và biểu diễn cấu trúc câu chuẩn theo phong cách thiết kế 3 dòng interlinear ngắt dòng bằng thẻ <br> tuyệt đối biệt lập từng dòng. Đồng thời nhúng mã [AUDIO_START] câu tiếng Anh chuẩn [AUDIO_END] ở cuối.")
+        send_exam_data(f"Tôi nộp câu trả lời tại mã đề {selected_de} câu số {st.session_state.current_q} là: {text_input}. Bạn hãy thẩm định đúng/sai (nếu đúng chèn thẻ [SCORE_UP] để cộng điểm). BẮT BUỘC toàn bộ câu tiếng Anh giải thích, sửa sai hay phân tích kết quả bên ngoài hoặc bên trong cặp thẻ [DIEN_GIAI_START] và [DIEN_GIAI_END] đều phải tuân thủ cấu trúc interlinear 3 dòng ngắt hàng bằng thẻ <br> cứng (ENG - IPA - VIE). Nhúng kèm mã [AUDIO_START] câu mẫu [AUDIO_END] ở cuối cùng.")
