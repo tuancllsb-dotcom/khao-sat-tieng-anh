@@ -1,11 +1,12 @@
 import streamlit as st
 import google.generativeai as genai
+from google.generativeai.types import HarmCategory, HarmBlockThreshold
 from gtts import gTTS
 import io
 import base64
 import time
 
-# ✨ Thiết lập cấu hình phòng khảo thí VSTEP thực chiến, tối ưu hóa giao diện.
+# ✨ Thiết lập cấu hình phòng khảo thí VSTEP
 st.set_page_config(
     page_title="Hệ Thống Luyện Thi VSTEP Giáo Viên - Phiên Bản Tối Cao",
     page_icon="🎓",
@@ -13,7 +14,6 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# 🧠 BỘ NÃO AI TỔNG HỢP: CHUYÊN GIA KHẢO THÍ VSTEP, NHÀ NGÔN NGỮ HỌC VÀ HUẤN LUYỆN NÃO BỘ
 MASTER_PROMPT = """
 # ROLE & PERSONALITY
 You are the world-class "Interactive VSTEP Master Trainer" with 20+ years of pedagogical experience in high-stakes teacher proficiency assessment. You look at test items through the lens of a linguist and cognitive scientist. You address the user respectfully as "thầy cô".
@@ -44,6 +44,7 @@ D. <Option D text>
 - Compare clearly heard words against the target sentences. Render using HTML style blocks:
   * Correct words: dark green/black (`.txt-correct`).
   * Wrong or skipped words: bright RED (`.txt-wrong`) with correct standard IPA inserted directly underneath (`.ipa-practice`).
+- ALWAYS produce a full text answer, even if the audio is unclear. If truly nothing intelligible was heard, explicitly say so in Vietnamese instead of returning nothing.
 
 # VERBATIM EMBEDDED SYLLABUS DOCUMENT DATA BANK
 Extract, simulate, and adapt core question frameworks directly from:
@@ -56,7 +57,17 @@ Extract, simulate, and adapt core question frameworks directly from:
 Always duplicate the core clean English target sentence between `[AUDIO_START]` and `[AUDIO_END]` tags at the very end of your response block to keep the gTTS button active.
 """
 
-# 💾 HỆ THỐNG QUAN TRẮC TRẠNG THÁI PHÒNG THI (STATE MANAGEMENT)
+# Cho phép audio ghi âm chất lượng thấp không bị chặn oan bởi safety filter
+SAFETY_SETTINGS = {
+    HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+    HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+    HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+    HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+}
+
+MODEL_NAME = "gemini-2.5-flash"
+
+# 💾 STATE MANAGEMENT
 if "messages" not in st.session_state:
     st.session_state.messages = []
 if "current_q" not in st.session_state:
@@ -65,8 +76,10 @@ if "score" not in st.session_state:
     st.session_state.score = 0
 if "start_time" not in st.session_state:
     st.session_state.start_time = time.time()
+if "mic_key" not in st.session_state:
+    st.session_state.mic_key = 0  # dùng để "reset" widget audio_input sau khi nộp bài
 
-# ⚙️ BẢN ĐIỀU HÀNH PHÒNG THI SƯ PHẠM CAO CẤP (SIDEBAR CHUYÊN GIA)
+# ⚙️ SIDEBAR
 st.sidebar.title("🎓 TRUNG TÂM ĐIỀU HÀNH VSTEP")
 
 if "GEMINI_API_KEY" in st.secrets:
@@ -74,7 +87,6 @@ if "GEMINI_API_KEY" in st.secrets:
 else:
     api_key = st.sidebar.text_input("1. Nhập Gemini API Key:", type="password")
 
-# 📂 QUẢN LÝ HỆ THỐNG ĐA MÃ ĐỀ LUYỆN TẬP THEO TÀI LIỆU GỐC
 st.sidebar.markdown("### 📁 BỘ CHỌN MÃ ĐỀ LUYỆN THI")
 selected_de = st.sidebar.selectbox(
     "Chọn Mã đề thi thực chiến:",
@@ -84,7 +96,6 @@ selected_de = st.sidebar.selectbox(
 font_size = st.sidebar.slider("Kích thước chữ (Nút chữ T)", 14, 24, 16)
 st.markdown(f"<style>.stMarkdown, p, li, .stChatMessage {{ font-size: {font_size}px !important; }}</style>", unsafe_allow_html=True)
 
-# 🔢 PHÍM TẮT DI CHUYỂN PHẦN THI THEO HỒ SƠ TÀI LIỆU VSTEP
 st.sidebar.markdown("### 🔢 PHẦN THI CHUYÊN BIỆT")
 col_s1, col_s2 = st.sidebar.columns(2)
 nav_action = None
@@ -96,9 +107,8 @@ with col_s2:
     if st.sidebar.button("4️⃣ VSTEP Nói", use_container_width=True): nav_action = "4"
 
 st.sidebar.markdown("---")
-st.sidebar.markdown("### 🧭 ĐIỀU HƯỚNG TIẾN LÙI ĐA CHIỀU (QUAY LẠI TỰ DO)")
+st.sidebar.markdown("### 🧭 ĐIỀU HƯỚNG TIẾN LÙI ĐA CHIỀU")
 
-# ĐIỀU CHỈNH QUAY LẠI TỰ DO THEO YÊU CẦU THỰC CHIẾN CỦA GIÁO VIÊN (KHÁC VỚI ĐỀ THI KHÓA CỨNG BAN ĐẦU)
 col_prev, col_next = st.sidebar.columns(2)
 with col_prev:
     if st.button("⏮️ CÂU TRƯỚC", use_container_width=True):
@@ -115,20 +125,24 @@ if st.sidebar.button("🔄 KHỞI ĐỘNG LẠI PHÒNG THI", use_container_width
     st.session_state.current_q = 1
     st.session_state.score = 0
     st.session_state.start_time = time.time()
+    st.session_state.mic_key += 1
     nav_action = f"VỀ MENU CHÍNH CHÀO MỪNG CỦA MÃ ĐỀ {selected_de}"
 
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 🎤 PHẦN THI NÓI - THU ÂM")
-audio_data = st.sidebar.audio_input("Bấm nút tròn bên dưới để thu âm bài nói trực tiếp:")
+# key động: sau khi nộp bài, mic_key tăng lên -> widget bị "reset" hoàn toàn (không dính audio cũ)
+audio_data = st.sidebar.audio_input(
+    "Bấm nút tròn bên dưới để thu âm bài nói trực tiếp:",
+    key=f"mic_{st.session_state.mic_key}"
+)
 
-# 🏛️ KHÔNG GIAN KHẢO THÍ SỐ HÓA VSTEP
+# 🏛️ MAIN
 st.title("🎓 SIÊU ỨNG DỤNG KHẢO SÁT TIẾNG ANH VSTEP")
-st.caption(f"Đang vận hành cấu trúc: {selected_de} | Chuẩn hóa Cú pháp & Tách dòng Interlinear Tuyệt đối bám sát tài liệu gốc")
+st.caption(f"Đang vận hành cấu trúc: {selected_de} | Chuẩn hóa Cú pháp & Tách dòng Interlinear")
 st.markdown("---")
 
-# 📊 THANH TRẠNG THÁI TIẾN ĐỘ KHẢO SÁT VÀ BẢNG ĐIỂM SỐ CHI TIẾT
 elapsed_time = time.time() - st.session_state.start_time
-remaining_time = max(50 * 60 - elapsed_time, 0) 
+remaining_time = max(50 * 60 - elapsed_time, 0)
 mins, secs = divmod(int(remaining_time), 60)
 
 dash_col1, dash_col2, dash_col3 = st.columns(3)
@@ -143,18 +157,53 @@ with dash_col3:
 
 st.markdown("---")
 
-# 🌟 TỰ ĐỘNG KHỞI TẠO PHÒNG THI KHI KÍCH HOẠT MÃ ĐỀ VÀ API KEY
-if "initialized" not in st.session_state and api_key:
-    try:
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-2.5-flash', system_instruction=MASTER_PROMPT)
-        init_res = model.generate_content(f"START_APPLICATION_FOR_CODE_{selected_de}")
-        st.session_state.messages.append({"role": "assistant", "content": init_res.text})
-        st.session_state.initialized = True
-    except Exception as e:
-        st.sidebar.error(f"Lỗi kết nối bộ não AI: {e}")
 
-# 🎵 TÁI SINH NÚT PHÁT ÂM THANH CHỦ ĐỘNG KHÔNG LỖI (TẮT AUTOPLAY)
+def get_model():
+    genai.configure(api_key=api_key)
+    return genai.GenerativeModel(
+        MODEL_NAME,
+        system_instruction=MASTER_PROMPT,
+        safety_settings=SAFETY_SETTINGS,
+    )
+
+
+def extract_text_safely(response):
+    """
+    Trích xuất text từ response một cách an toàn, KHÔNG dùng response.text
+    trực tiếp (vì nó raise exception im lặng khi bị chặn / không có Part).
+    Trả về (text, error_message). Nếu lỗi, text sẽ là None và error_message
+    có nội dung tiếng Việt rõ ràng để hiển thị cho người dùng.
+    """
+    try:
+        if not response.candidates:
+            fb = getattr(response, "prompt_feedback", None)
+            reason = getattr(fb, "block_reason", "không rõ")
+            return None, f"⚠️ Gemini đã từ chối xử lý yêu cầu (block_reason: {reason}). Thầy/cô hãy thử ghi âm lại, nói rõ hơn hoặc giảm tiếng ồn nền."
+
+        candidate = response.candidates[0]
+        finish_reason = getattr(candidate, "finish_reason", None)
+
+        parts_text = []
+        if candidate.content and candidate.content.parts:
+            for part in candidate.content.parts:
+                if hasattr(part, "text") and part.text:
+                    parts_text.append(part.text)
+
+        full_text = "".join(parts_text).strip()
+
+        if not full_text:
+            return None, (
+                f"⚠️ Hệ thống không nhận được nội dung phản hồi hợp lệ "
+                f"(finish_reason: {finish_reason}). Nguyên nhân thường gặp: file ghi âm quá nhỏ/ồn, "
+                f"hoặc bị bộ lọc an toàn chặn. Thầy/cô vui lòng thử ghi âm lại (nói to, rõ, gần mic hơn)."
+            )
+
+        return full_text, None
+
+    except Exception as e:
+        return None, f"⚠️ Lỗi khi đọc phản hồi từ AI: {e}"
+
+
 def play_audio_safely(text_content):
     if "[AUDIO_START]" in text_content and "[AUDIO_END]" in text_content:
         try:
@@ -172,42 +221,57 @@ def play_audio_safely(text_content):
         except Exception as e:
             st.error(f"Lỗi khởi tạo động cơ âm thanh gTTS: {e}")
 
-# 📜 HIỂN THỊ DÒNG LỊCH SỬ KHẢO THÍ CHUẨN ĐỒ HỌA SƯ PHẠM
+
+# 🌟 KHỞI TẠO PHÒNG THI LẦN ĐẦU
+if "initialized" not in st.session_state and api_key:
+    try:
+        model = get_model()
+        init_res = model.generate_content(f"START_APPLICATION_FOR_CODE_{selected_de}")
+        text, err = extract_text_safely(init_res)
+        if text:
+            st.session_state.messages.append({"role": "assistant", "content": text})
+        elif err:
+            st.session_state.messages.append({"role": "assistant", "content": err})
+        st.session_state.initialized = True
+    except Exception as e:
+        st.sidebar.error(f"Lỗi kết nối bộ não AI: {e}")
+
+# 📜 HIỂN THỊ LỊCH SỬ
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"], unsafe_allow_html=True)
         if message["role"] == "assistant":
             play_audio_safely(message["content"])
 
-# 🚀 CỔNG TRUYỀN DỮ LIỆU ĐƯỜNG TRUYỀN HỎA TỐC BIÊN NGOÀI
+
 def send_exam_data(prompt_text, audio_file=None, is_nav=False):
     if not api_key:
         st.sidebar.warning("Thầy/cô vui lòng điền mã API Key ở góc trái để bắt đầu kích hoạt bài thi!")
         return
-        
-    response_text = ""
+
     try:
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-2.5-flash', system_instruction=MASTER_PROMPT)
-        
+        model = get_model()
+
         if is_nav:
             st.session_state.messages = [msg for msg in st.session_state.messages if msg["role"] == "assistant"][-1:]
-        
+
         formatted_contents = []
         for msg in st.session_state.messages[-4:]:
             role = "user" if msg["role"] == "user" else "model"
             formatted_contents.append({"role": role, "parts": [msg["content"]]})
-        
+
         if audio_file is not None:
-            st.session_state.messages.append({"role": "user", "content": f"🎤 [Thầy cô đã nộp tệp âm thanh Micro của mã đề {selected_de}]"})
+            st.session_state.messages.append({
+                "role": "user",
+                "content": f"🎤 [Thầy cô đã nộp tệp âm thanh Micro của mã đề {selected_de}]"
+            })
+            # ĐÚNG cấu trúc cho google-generativeai: dict phẳng {mime_type, data}
             formatted_contents.append({
                 "role": "user",
                 "parts": [
                     {
-                        "inline_data": {
-                            "mime_type": audio_file.type,
-                            "data": audio_file.getvalue()
-                        }
+                        "mime_type": audio_file.type or "audio/wav",
+                        "data": audio_file.getvalue()
                     },
                     prompt_text
                 ]
@@ -215,56 +279,63 @@ def send_exam_data(prompt_text, audio_file=None, is_nav=False):
         else:
             st.session_state.messages.append({"role": "user", "content": prompt_text})
             formatted_contents.append({"role": "user", "parts": [prompt_text]})
-        
-        with st.chat_message("assistant"):
-            with st.spinner("Hệ thống chuyên gia đang thẩm định bài làm và giải giải phẫu cú pháp..."):
-                response = model.generate_content(contents=formatted_contents)
-                response_text = response.text
-                st.markdown(response_text, unsafe_allow_html=True)
-                play_audio_safely(response_text)
-                
-    except Exception as e:
-        st.error(f"❌ Đường truyền báo lỗi: {e}. Vui lòng kiểm tra lại thiết bị hoặc nhấn F5.")
-        return
 
-    # KÍCH HOẠT BIÊN NGOÀI KHỐI - Bẻ gãy bẫy lỗi đơ vòng lặp Streamlit
-    if response_text:
-        st.session_state.messages.append({"role": "assistant", "content": response_text})
+        with st.chat_message("assistant"):
+            with st.spinner("Hệ thống chuyên gia đang thẩm định bài làm..."):
+                response = model.generate_content(contents=formatted_contents)
+                response_text, err = extract_text_safely(response)
+
+                final_text = response_text if response_text else err
+
+                st.markdown(final_text, unsafe_allow_html=True)
+                if response_text:
+                    play_audio_safely(final_text)
+
+        st.session_state.messages.append({"role": "assistant", "content": final_text})
+
+        # reset mic sau khi nộp bài nói để tránh nộp trùng / dính audio cũ
+        if audio_file is not None:
+            st.session_state.mic_key += 1
+
         st.rerun()
 
-# Kích hoạt luồng chuyển dịch hành chính từ Sidebar
+    except Exception as e:
+        st.error(f"❌ Đường truyền báo lỗi: {e}. Vui lòng kiểm tra lại API Key, thiết bị hoặc nhấn F5.")
+
+
+# Điều hướng Sidebar
 if nav_action:
     send_exam_data(nav_action, is_nav=True)
 
-# 🚀 NỘP BÀI THI NÓI VSTEP - Thuật toán bộ lọc thính giác & Nhuộm đỏ lỗi phát âm từng từ
+# Nộp bài thi Nói
 if audio_data is not None:
     if st.sidebar.button("🚀 NỘP BÀI THI NÓI VSTEP", use_container_width=True):
         vstep_speech_command = f"""
         Đây là dữ liệu giọng nói của tôi từ microphone cho câu hỏi số {st.session_state.current_q} thuộc mã đề {selected_de}. Hãy xử lý nghiêm ngặt theo các bước sau:
-        
-        1. [DỰ ĐOÁN VÀ BÓC BĂNG PHÁN ĐOÁN AI]: Thực hiện vai trò bộ lọc thính giác NLP thông minh. CHỈ GHI RA những từ ngữ được phát âm rõ âm, rõ chữ và mạch lạc. Nếu từ nào thều thào, nói lắp, hoặc bị nhiễu hoàn toàn bởi tạp âm môi trường, tuyệt đối KHÔNG ĐƯỢC GHI RA text.
-        
+
+        1. [DỰ ĐOÁN VÀ BÓC BĂNG PHÁN ĐOÁN AI]: Thực hiện vai trò bộ lọc thính giác NLP thông minh. CHỈ GHI RA những từ ngữ được phát âm rõ âm, rõ chữ và mạch lạc. Nếu từ nào thều thào, nói lắp, hoặc bị nhiễu hoàn toàn bởi tạp âm môi trường, tuyệt đối KHÔNG ĐƯỢC GHI RA text. Nếu hoàn toàn không nghe được gì, hãy nói rõ điều đó bằng tiếng Việt thay vì trả về nội dung trống.
+
         2. [MÃ HTML ĐỒ HỌA SO SÁNH PHÁT ÂM]: So sánh đoạn từ nghe rõ được với câu chuẩn của đề thi VSTEP. Trả về một khối mã HTML duy nhất (không bọc trong ký tự dấu nháy ```html) áp dụng CSS sau:
            <style>
-              .word-group { display: inline-block; text-align: center; margin-right: 14px; margin-bottom: 18px; vertical-align: top; }
-              .txt-correct { font-size: 19px; color: #2e7d32; font-weight: bold; }
-              .txt-wrong { font-size: 19px; color: #d32f2f; font-weight: bold; }
-              .ipa-practice { font-size: 13px; color: #c62828; font-family: monospace; display: block; margin-top: 5px; }
+              .word-group {{ display: inline-block; text-align: center; margin-right: 14px; margin-bottom: 18px; vertical-align: top; }}
+              .txt-correct {{ font-size: 19px; color: #2e7d32; font-weight: bold; }}
+              .txt-wrong {{ font-size: 19px; color: #d32f2f; font-weight: bold; }}
+              .ipa-practice {{ font-size: 13px; color: #c62828; font-family: monospace; display: block; margin-top: 5px; }}
            </style>
            - Từ phát âm CHUẨN: bọc trong <div class='word-group'><span class='txt-correct'>Từ_Gốc</span></div>
            - Từ phát âm SAI hoặc BỊ BỎ QUA từ câu mẫu chuẩn: Nhuộm màu ĐỎ rực rỡ bằng cách bọc trong <div class='word-group'><span class='txt-wrong'>Từ_Gốc</span><span class='ipa-practice'>/Phiên_Âm_Chuẩn/</span></div>
-        
-        3. [PHẦN GIẢI THÍCH SÂU & BIỂU DIỄN DÒNG BIỆT LẬP TUYỆT ĐỐI HHTML]: Ngay bên dưới khối HTML, hãy xuất ra phần chấm điểm, phần giải thích phân tích xác suất ra đề & trọng tâm bám sát, mẹo huấn luyện não bộ ghi nhớ và bắt buộc áp dụng thẻ ngắt dòng <br> cho cấu trúc interlinear:
+
+        3. [PHẦN GIẢI THÍCH SÂU]: Ngay bên dưới khối HTML, hãy xuất ra phần chấm điểm, phần giải thích phân tích xác suất ra đề & trọng tâm bám sát, mẹo huấn luyện não bộ ghi nhớ và bắt buộc áp dụng thẻ ngắt dòng <br> cho cấu trúc interlinear:
            <b>[📦 ENG]</b> <Câu Anh mẫu tiếng><br>
            <i>[🎵 IPA]</i> <Phiên chuẩn cụm quốc tế âm><br>
            <b>[🇻🇳 VIE]</b> <Bản Việt bám cảnh dịch nghĩa ngữ sát đề>
-           
+
         4. [TÁI SINH NÚT PHÁT ÂM THANH]: Đảm bảo sao chép lại câu tiếng Anh chuẩn bọc trong cặp thẻ [AUDIO_START] Câu tiếng Anh chuẩn [AUDIO_END] đặt ở cuối để giữ bộ phát âm thanh hoạt động.
         """
         send_exam_data(vstep_speech_command, audio_file=audio_data)
 
-# 📝 KHUNG TIẾP NHẬN ĐÁP ÁN TRẮC NGHIỆM VÀ BÀI LUẬN TỰ LUẬN VSTEP
-if text_input := st.chat_input("Nhập đáp án (A,B,C,D), số câu/phần hoặc đoạn văn viết tự luận tại đây..."):  
+# Ô nhập text
+if text_input := st.chat_input("Nhập đáp án (A,B,C,D), số câu/phần hoặc đoạn văn viết tự luận tại đây..."):
     if text_input.strip() in ["1", "2", "3", "4"]:
         send_exam_data(text_input.strip(), is_nav=True)
     else:
