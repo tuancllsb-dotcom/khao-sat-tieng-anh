@@ -2,19 +2,20 @@ import streamlit as st
 import google.generativeai as genai
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
 from gtts import gTTS
+import re
 import io
 import base64
 import time
 
-# ✨ Thiết lập cấu hình phòng khảo thí VSTEP thực chiến chuyên nghiệp
+# Thiết lập cấu hình phòng khảo thí thực chiến chuyên nghiệp
 st.set_page_config(
-    page_title="Siêu Ứng Dụng Khảo Sát VSTEP Toàn Diện - Master Blueprint",
+    page_title="Hệ Thống Khảo Sát Năng Lực Tiếng Anh VSTEP Giáo Viên",
     page_icon="🎓",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# 📁 CO SỞ DỮ LIỆU ĐỀ THI ĐA PHÂN HỆ CỐ ĐỊNH (CHỐNG LỖI MẤT NGỮ CẢNH VÀ ĐƠ CÂU HỎI)
+# NGÂN HÀNG DỮ LIỆU ĐỀ THI CỐ ĐỊNH THEO PHOM QUY CHUẨN KHẢO THÍ CHUẨN XÁC
 VSTEP_EXAM_DB = {
     "1️⃣ VSTEP Nghe": [
         {
@@ -117,7 +118,7 @@ VSTEP_EXAM_DB = {
     ]
 }
 
-# 🧠 MASTER_PROMPT: CHỈ THỊ ÉP AI CHẤM ĐIỂM VÀ ĐỒNG BỘ 3 DÒNG INTERLINEAR TUYỆT ĐỐI
+# HƯỚNG DẪN ĐỊNH DẠNG ĐỒNG BỘ 3 DÒNG INTERLINEAR KÈM MA TRẬN CÂU HỎI THAM KHẢO NỘI HÀM
 MASTER_PROMPT = """
 # ROLE & PERSONALITY
 You are the elite "VSTEP Master Trainer" specialized in rapid remediation for learners who lost their English roots (người mất gốc). You operate with 20+ years of high-stakes teacher proficiency assessment experience. Address the user respectfully as "thầy cô".
@@ -128,8 +129,9 @@ Every single English piece of text, sample sentence, correction text, or alterna
 <small><font color="#4B5563">🎵 IPA: /[Standard International Phonetic Alphabet chunk pauses]/</font></small><br>
 <i><font color="#059669">🇻🇳 VIE: [Dịch Nghĩa Tiếng Việt Bình Dân Dễ Hiểu Nhất]</font></i>
 
-# EXPANDER DIEN_GIAI PACKAGING PROTOCOL
+# EXPANDER DIEN_GIAI PACKAGING PROTOCOL WITH INLINE REFERENCE QUESTIONS
 You MUST bundle your entire feedback analytical breakdown strictly inside `[DIEN_GIAI_START]` and `[DIEN_GIAI_END]` tags. Inside, render this exact scannable structure:
+
 <b>[🎯 ĐÁP ÁN ĐÚNG / ĐÁNH GIÁ CHUYÊN GIA]</b>: <Provide score alignment or grammatical evaluation in 1 clear sentence>
 
 <b>[🎧 CỤM TỪ VÀNG CẦN CHÚ Ý - VSTEP KEYWORDS]</b>
@@ -146,8 +148,12 @@ You MUST bundle your entire feedback analytical breakdown strictly inside `[DIEN
 <b>[⚠️ BẪY ĐỀ THI - MẤT GỐC CẦN TRÁNH]</b>: <Explain traps concisely using simple math formulas or rules>
 <b>[⏳ TRA CỨU THÌ QUÁ KHỨ - GỐC TỪ]</b>: <Map past verbs to infinitive form: "• <b>past_verb</b> là quá khứ của <b>infinitive_verb</b> (nghĩa)">
 
-# AUDIO REGENERATION TAGS
-Duplicate the target clear English sample text between `[AUDIO_START]` and `[AUDIO_END]` tags at the very end of your response block to trigger the playback engine.
+<b>[📚 CÂU HỎI THAM KHẢO PHÁT TRIỂN NĂNG LỰC - PRACTICE VARIANT MATRIX]</b>
+Provide exactly 2 parallel practice questions relevant to the target context. 
+CRITICAL MANDATE FOR EACH REFERENCE QUESTION:
+1. You MUST enclose the English text of the question stem inside `[AUDIO_START] ... [AUDIO_END]` tags to trigger an independent inline media player underneath it.
+2. Present the question stem and all 4 multiple-choice options strictly in the 3-line interlinear format.
+3. Explicitly provide the target correct answer key and a 1-sentence translation guide.
 """
 
 SAFETY_SETTINGS = {
@@ -159,7 +165,7 @@ SAFETY_SETTINGS = {
 
 MODEL_NAME = "gemini-2.5-flash"
 
-# 💾 STATE MANAGEMENT PHÒNG THI KIÊN CỐ CHỐNG MẤT NGỮ CẢNH
+# HỆ THỐNG QUẢN LÝ TRẠNG THÁI KHẢO THÍ TOÀN DIỆN (PERSISTENT STATE ENGINE)
 if "current_section" not in st.session_state:
     st.session_state.current_section = "1️⃣ VSTEP Nghe"
 if "current_q_idx" not in st.session_state:
@@ -172,14 +178,18 @@ if "start_time" not in st.session_state:
     st.session_state.start_time = time.time()
 if "mic_key" not in st.session_state:
     st.session_state.mic_key = 0
+if "submitted_state" not in st.session_state:
+    st.session_state.submitted_state = {}
+if "saved_explanations" not in st.session_state:
+    st.session_state.saved_explanations = {}
 
-# ⚙️ SIDEBAR ĐIỀU HÀNH PHÒNG THI CHUYÊN GIA
+# THÀNH PHẦN ĐIỀU HÀNH BÊN SƯỜN GIAO DIỆN
 st.sidebar.title("🎓 TRUNG TÂM ĐIỀU HÀNH VSTEP")
 
 if "GEMINI_API_KEY" in st.secrets:
     api_key = st.secrets["GEMINI_API_KEY"]
 else:
-    api_key = st.sidebar.text_input("1. Nhập Gemini API Key:", type="password")
+    api_key = st.sidebar.text_input("Nhập mã hệ thống truy cập:", type="password")
 
 st.sidebar.markdown("### 📁 BỘ CHỌN MÃ ĐỀ LUYỆN THI")
 selected_de = st.sidebar.selectbox(
@@ -187,7 +197,7 @@ selected_de = st.sidebar.selectbox(
     ["Mã đề VSTEP-2026-A (Đề Minh Họa Chuẩn)", "Mã đề VSTEP-2026-B (Biến Thể Song Song)", "Mã đề VSTEP-2026-C (Nâng Cao Chuyên Sâu)"]
 )
 
-font_size = st.sidebar.slider("Kích thước chữ (Nút chữ T)", 14, 24, 16)
+font_size = st.sidebar.slider("Kích thước chữ hiển thị", 14, 24, 16)
 st.markdown(f"<style>.stMarkdown, p, li, .stChatMessage {{ font-size: {font_size}px !important; }}</style>", unsafe_allow_html=True)
 
 st.sidebar.markdown("### 🔢 PHẦN THI CHUYÊN BIỆT")
@@ -231,16 +241,16 @@ if st.sidebar.button("🔄 KHỞI ĐỘNG LẠI PHÒNG THI", use_container_width
     st.session_state.start_time = time.time()
     st.session_state.messages = []
     st.session_state.mic_key += 1
-    if "scored_questions" in st.session_state:
-        st.session_state.scored_questions.clear()
+    st.session_state.submitted_state.clear()
+    st.session_state.saved_explanations.clear()
     st.rerun()
 
-# 🏛️ KHÔNG GIAN KHẢO THÍ SỐ HÓA VSTEP
-st.title("🎓 SIÊU ỨNG DỤNG KHẢO SÁT TIẾNG ANH VSTEP")
-st.caption(f"Cơ sở hạ tầng Master Blueprint hoàn thiện | Đang vận hành: {selected_de}")
+# KHÔNG GIAN KHẢO THÍ SỐ HÓA VSTEP CHÍNH DIỆN
+st.title("🎓 HỆ THỐNG KHẢO SÁT NĂNG LỰC TIẾNG ANH VSTEP")
+st.caption(f"Cơ sở hạ tầng Master Blueprint quy chuẩn | Đang vận hành: {selected_de}")
 st.markdown("---")
 
-# 📊 ĐỒNG HỒ ĐẾM NGƯỢC VÀ THANH TIẾN ĐỘ THỰC TẾ TRÊN GIAO DIỆN
+# ĐỒNG HỒ ĐẾM NGƯỢC VÀ THANH TIẾN ĐỘ THỰC TẾ TRÊN GIAO DIỆN
 elapsed_time = time.time() - st.session_state.start_time
 remaining_time = max(50 * 60 - elapsed_time, 0)
 mins, secs = divmod(int(remaining_time), 60)
@@ -251,14 +261,16 @@ with dash_col1:
     st.progress((st.session_state.current_q_idx + 1) / max_questions)
     st.caption(f"Tiến độ: Câu {st.session_state.current_q_idx + 1} trên tổng số {max_questions} mục tiêu.")
 with dash_col2:
-    st.metric(label="💯 Điểm Số Phòng Thi Hiện Tại", value=f"{st.session_state.score} Điểm")
+    st.metric(label="💯 Điểm Số Đạt Được", value=f"{st.session_state.score} Điểm")
 with dash_col3:
     st.metric(label="⏳ Đồng Hồ Đếm Ngược", value=f"{mins:02d}:{secs:02d} Phút")
 
 st.markdown("---")
 
-# 📥  ĐỀ BÀI HIỆN TẠI  (ĐẢM BẢO LUÔN HIỂN THỊ)
+# TRÍCH XUẤT ĐỐI TƯỢNG ĐỀ BÀI HIỆN TẠI TỪ CƠ SỞ DỮ LIỆU PYTHON
 active_q = questions_list[st.session_state.current_q_idx]
+q_key = f"{selected_de}_{st.session_state.current_section}_{active_q['id']}"
+is_submitted = q_key in st.session_state.submitted_state
 
 # Thuật toán hoán đổi dữ liệu động để tạo biến thể song song khi chọn mã đề B hoặc C
 display_question = active_q['question']
@@ -279,40 +291,83 @@ if "Mã đề VSTEP-2026-B" in selected_de or "Mã đề VSTEP-2026-C" in select
 
 st.markdown(f"### 📝 {active_q['type']} - Câu hỏi số {active_q['id']}")
 
-# Luồng hiển thị trực quan cho từng kỹ năng cụ thể
+# LUỒNG HIỂN THỊ TRỰC QUAN KHÓA TRẠNG THÁI SAU KHI THỰC HIỆN NỘP ĐÁP ÁN
 if st.session_state.current_section == "1️⃣ VSTEP Nghe":
-    st.info("🎧 **Học viên nghe băng ghi âm chủ động dưới đây và chọn đáp án chính xác (Văn bản kịch bản đã được giấu tự động để chống bẫy thị giác):**")
-    tts = gTTS(text=display_script, lang='en', tld='com')
-    fp = io.BytesIO()
-    tts.write_to_fp(fp)
-    fp.seek(0)
-    st.audio(fp, format="audio/mp3")
+    st.info("🎧 **Thầy cô thực hiện nghe dữ liệu âm thanh dưới đây và xác định câu trả lời chuẩn xác:**")
+    tts_main = gTTS(text=display_script, lang='en', tld='com')
+    fp_main = io.BytesIO()
+    tts_main.write_to_fp(fp_main)
+    fp_main.seek(0)
+    st.audio(fp_main, format="audio/mp3")
     
+    if is_submitted:
+        st.success("=== VĂN BẢN BÓC BĂNG ÂM THANH (AUDIO SCRIPT) CỐ ĐỊNH ===")
+        st.markdown(f"> {display_script}")
+        st.markdown("=========================================================")
+
     st.markdown(f"**Question:** {display_question}")
-    user_choice = st.radio("Chọn phương án trả lời:", display_options, key=f"listen_radio_{active_q['id']}_{selected_de}")
 
 elif st.session_state.current_section == "2️⃣ VSTEP Đọc":
     st.success("=== ĐOẠN VĂN NỀN ĐỌC HIỂU HOÀN CHỈNH (PASSAGE CONTEXT) ===")
     st.markdown(f"> {display_passage}")
     st.markdown("=========================================================")
     st.markdown(f"**Question:** {display_question}")
-    user_choice = st.radio("Chọn phương án trả lời:", display_options, key=f"read_radio_{active_q['id']}_{selected_de}")
 
 elif st.session_state.current_section == "3️⃣ VSTEP Viết":
-    st.warning("✍️ **ĐỀ BÀI LUẬN / THƯ TỰ LUẬN  (WRITING TASK):**")
+    st.warning("✍️ **ĐỀ BÀI TỰ LUẬN QUY CHUẨN (WRITING TASK):**")
     st.markdown(f"📢 **Yêu cầu:** {display_prompt}")
-    with st.expander("💡 Bấm vào đây để xem Khung xương cá từ vựng gợi ý (Sentence Scaffolding Templates)"):
+    with st.expander("💡 Khung cấu trúc câu gợi ý (Sentence Scaffolding Templates)"):
         st.code(active_q.get("template", ""), language="markdown")
-    user_essay = st.text_area("Nhập nội dung bài viết tự luận của thầy cô tại đây (Hệ thống sẽ chấm điểm ):", height=250, key=f"write_area_{active_q['id']}")
+    
+    if not is_submitted:
+        user_essay = st.text_area("Nhập nội dung bài viết tự luận của thầy cô tại đây:", height=250, key=f"write_area_{active_q['id']}")
+    else:
+        st.info("Bài làm tự luận đã được ghi nhận trên hệ thống.")
+        st.markdown(f"> *{st.session_state.submitted_state[q_key]}*")
 
 elif st.session_state.current_section == "4️⃣ VSTEP Nói":
-    st.error("🎤 **ĐỀ THI NÓI  (SPEAKING PROMPT):**")
+    st.error("🎤 **ĐỀ THI NÓI PHẢN XẠ (SPEAKING PROMPT):**")
     st.markdown(f"🗣️ **Yêu cầu phản xạ:** {display_prompt}")
-    st.info("Thầy cô hãy bật nút Ghi âm ở thanh Micro bên dưới thanh điều hướng Sidebar để thu âm câu trả lời.")
+    st.info("Thầy cô thực hiện thu âm câu trả lời thông qua bảng điều khiển âm thanh ở thanh bên dọc.")
+
+# THUẬT TOÁN ĐỒ HỌA HOÁN ĐỔI MÀU SẮC ĐÁP ÁN ĐÚNG SANG XANH LỤC SAU KHI NỘP BÀI
+if st.session_state.current_section in ["1️⃣ VSTEP Nghe", "2️⃣ VSTEP Đọc"]:
+    if not is_submitted:
+        user_choice = st.radio("Chọn phương án trả lời của thầy cô:", display_options, key=f"listen_radio_{active_q['id']}_{selected_de}")
+    else:
+        st.markdown("**Trạng thái đối chiếu phương án:**")
+        for opt in display_options:
+            if opt.startswith(active_q["correct"]):
+                st.markdown(f"<p style='color:#2E7D32; font-weight:bold; font-size:18px; margin-bottom:8px;'>✔ {opt} (Đáp án chuẩn)</p>", unsafe_allow_html=True)
+            elif opt.startswith(st.session_state.submitted_state[q_key]) and st.session_state.submitted_state[q_key] != active_q["correct"]:
+                st.markdown(f"<p style='color:#D32F2F; font-weight:bold; font-size:18px; margin-bottom:8px;'>✘ {opt} (Phương án thầy cô đã chọn)</p>", unsafe_allow_html=True)
+            else:
+                st.markdown(f"<p style='color:#4B5563; font-size:16px; margin-bottom:8px;'>• {opt}</p>", unsafe_allow_html=True)
 
 st.markdown("---")
 
-# 🏛️LỜI GIẢI VÀ T DIỄN GIẢI
+# THUẬT TOÁN ĐIỀU HÀNH CHUYỂN ĐỔI MÃ AUDIO NỘI HÀM THÀNH THANH PHÁT TRỰC QUAN
+def process_inline_audio(text):
+    pattern = r"\[AUDIO_START\](.*?)\[AUDIO_END\]"
+    matches = re.findall(pattern, text)
+    for match in matches:
+        phrase = match.strip()
+        if phrase:
+            try:
+                # Loại bỏ mã HTML thô nếu AI chèn nhầm vào text nói để gTTS đọc chuẩn xác
+                clean_phrase = re.sub('<[^<]+?>', '', phrase)
+                tts = gTTS(text=clean_phrase, lang='en', tld='com')
+                fp = io.BytesIO()
+                tts.write_to_fp(fp)
+                fp.seek(0)
+                b64_audio = base64.b64encode(fp.read()).decode()
+                audio_html = f'<audio controls src="data:audio/mp3;base64,{b64_audio}" style="width: 100%; max-width: 320px; display: block; margin-top: 6px; margin-bottom: 12px;"></audio>'
+                text = text.replace(f"[AUDIO_START]{match}[AUDIO_END]", audio_html)
+            except Exception as e:
+                text = text.replace(f"[AUDIO_START]{match}[AUDIO_END]", f"*(Trục trặc nạp âm thanh: {e})*")
+    return text
+
+# CƠ CHẾ GIAO TIẾP VỚI LÕI ĐƯỜNG TRUYỀN KIỂM ĐỊNH HỆ THỐNG
 def get_model():
     genai.configure(api_key=api_key)
     return genai.GenerativeModel(MODEL_NAME, system_instruction=MASTER_PROMPT, safety_settings=SAFETY_SETTINGS)
@@ -320,12 +375,12 @@ def get_model():
 def extract_text_safely(response):
     try:
         if not response.candidates:
-            return None, "⚠️ Bộ lọc an toàn đã từ chối xử lý âm thanh nhiễu. Thầy/cô vui lòng thu âm to, rõ ràng hơn."
+            return None, "⚠️ Quy trình bảo mật thông tin đã từ chối phân tích âm thanh nhiễu. Thầy/cô vui lòng thu âm rõ ràng hơn."
         candidate = response.candidates[0]
         parts_text = [part.text for part in candidate.content.parts if hasattr(part, "text") and part.text]
         return "".join(parts_text).strip(), None
     except Exception as e:
-        return None, f"⚠️ Lỗi đọc luồng dữ liệu AI candidate: {e}"
+        return None, f"⚠️ Trục trặc phân tách luồng dữ liệu phản hồi hệ thống: {e}"
 
 def render_custom_vstep_message(content):
     clean_content = content
@@ -337,76 +392,86 @@ def render_custom_vstep_message(content):
         clean_content = content.replace(content[start_dg:end_dg + len("[DIEN_GIAI_END]")], "")
     
     visible_content = clean_content.replace("[SCORE_UP]", "")
+    visible_content = process_inline_audio(visible_content)
     st.markdown(visible_content, unsafe_allow_html=True)
+    
     if dien_giai_text:
-        with st.expander("=== BẤM VÀO ĐÂY ĐỂ BUNG SƠ ĐỒ TƯ DUY, CỤM TỪ VÀNG & TRA CỨU QUÁ KHỨ ==="):
+        dien_giai_text = process_inline_audio(dien_giai_text)
+        with st.expander("=== THÀNH PHẦN MỞ RỘNG: SƠ ĐỒ TƯ DUY, CỤM TỪ VÀNG & CÂU HỎI THAM KHẢO ==="):
             st.markdown(dien_giai_text, unsafe_allow_html=True)
 
-# 🚀  NỘP BÀI TRẮC NGHIỆM VÀ ĐOẠN VĂN VIẾT
+# THỰC THI LỆNH NỘP BÀI KHẢO SÁT CHO CÁC PHÂN HỆ
 if st.session_state.current_section in ["1️⃣ VSTEP Nghe", "2️⃣ VSTEP Đọc", "3️⃣ VSTEP Viết"]:
-    if st.button("🚀 NỘP BÀI THỰC CHIẾN", use_container_width=True):
-        if not api_key:
-            st.sidebar.error("Vui lòng nhập API Key để kích hoạt bộ não thẩm định AI.")
-        else:
-            if st.session_state.current_section in ["1️⃣ VSTEP Nghe", "2️⃣ VSTEP Đọc"]:
-                student_answer = user_choice[0]
-                is_correct = (student_answer == active_q["correct"])
-                score_tag = "[SCORE_UP]" if is_correct else ""
-                
-                eval_prompt = f"""
-                Học viên đang làm đề {selected_de}, kỹ năng {st.session_state.current_section}, câu hỏi: '{display_question}'.
-                Đáp án đúng của hệ thống là: {active_q['correct']}. Học viên chọn phương án: {student_answer}.
-                Hãy xuất ra kết quả chấm điểm. Nếu đúng chèn thẻ {score_tag}.
-                Sau đó áp dụng quy tắc cưỡng bách 3 dòng interlinear để biểu diễn câu hỏi và phương án đúng chuẩn mực.
-                Cuối cùng đóng gói phần bóc tách sơ đồ tư duy, từ khóa vàng định vị thính giác vào cặp thẻ [DIEN_GIAI_START] và [DIEN_GIAI_END].
-                """
+    if not is_submitted:
+        if st.button("🚀 XÁC NHẬN NỘP BÀI LÀM", use_container_width=True):
+            if not api_key:
+                st.sidebar.error("Vui lòng nhập mã trực lưu để kích hoạt quy trình kiểm định.")
             else:
-                eval_prompt = f"""
-                Học viên nộp bài tự luận viết cho đề bài: '{display_prompt}'.
-                Nội dung văn bản học viên viết:
-                \"\"\"{user_essay}\"\"\"
-                Hãy đóng vai trò chuyên gia khảo thí, sửa sai ngữ pháp, nhuộm đỏ từ dùng lỗi, cung cấp bản viết lại chuẩn hóa theo cấu trúc interlinear 3 dòng ngắt hàng bằng thẻ <br>.
-                Đóng gói phần chấm điểm, mẹo huấn luyện cấu trúc câu xương cá vào bên trong cặp thẻ [DIEN_GIAI_START] và [DIEN_GIAI_END].
-                """
-            
-            with st.spinner("Hệ thống chuyên gia đang phân tích dữ liệu..."):
-                try:
-                    model = get_model()
-                    response = model.generate_content(eval_prompt)
-                    res_text, err = extract_text_safely(response)
-                    final_payload = res_text if res_text else err
+                if st.session_state.current_section in ["1️⃣ VSTEP Nghe", "2️⃣ VSTEP Đọc"]:
+                    student_answer = user_choice[0]
+                    st.session_state.submitted_state[q_key] = student_answer
+                    is_correct = (student_answer == active_q["correct"])
+                    score_tag = "[SCORE_UP]" if is_correct else ""
                     
-                    if res_text and "[SCORE_UP]" in res_text:
-                        q_key = f"{selected_de}_{st.session_state.current_section}_{active_q['id']}"
-                        if "scored_questions" not in st.session_state:
-                            st.session_state.scored_questions = set()
-                        if q_key not in st.session_state.scored_questions:
-                            st.session_state.score += 10
-                            st.session_state.scored_questions.add(q_key)
-                    
-                    st.session_state.messages.append({"role": "assistant", "content": final_payload})
-                    st.rerun()
-                except Exception as e:
-                    st.error(f"Lỗi hệ thống truyền tải: {e}")
+                    eval_prompt = f"""
+                    Học viên đang làm đề {selected_de}, kỹ năng {st.session_state.current_section}, câu hỏi: '{display_question}'.
+                    Đáp án đúng của hệ thống là: {active_q['correct']}. Học viên chọn phương án: {student_answer}.
+                    Hãy xuất ra kết quả chấm điểm. Nếu đúng chèn thẻ {score_tag}.
+                    Sau đó áp dụng quy tắc cưỡng bách 3 dòng interlinear để biểu diễn câu hỏi và phương án đúng chuẩn mực.
+                    Cuối cùng đóng gói phần bóc tách sơ đồ tư duy, từ khóa vàng định vị thính giác và phần CÂU HỎI THAM KHẢO BIẾN THỂ (kèm mã AUDIO_START và AUDIO_END bao quanh đề) vào cặp thẻ [DIEN_GIAI_START] và [DIEN_GIAI_END].
+                    """
+                else:
+                    st.session_state.submitted_state[q_key] = user_essay
+                    eval_prompt = f"""
+                    Học viên nộp bài tự luận viết cho đề bài: '{display_prompt}'.
+                    Nội dung văn bản học viên viết:
+                    \"\"\"{user_essay}\"\"\"
+                    Hãy đóng vai trò chuyên gia khảo thí, sửa sai ngữ pháp, nhuộm đỏ từ dùng lỗi, cung cấp bản viết lại chuẩn hóa theo cấu trúc interlinear 3 dòng ngắt hàng bằng thẻ <br>.
+                    Đóng gói phần chấm điểm, mẹo huấn luyện cấu trúc câu xương cá vào bên trong cặp thẻ [DIEN_GIAI_START] và [DIEN_GIAI_END].
+                    """
+                
+                with st.spinner("Hệ thống chuyên gia đang đối chiếu dữ liệu..."):
+                    try:
+                        model = get_model()
+                        response = model.generate_content(eval_prompt)
+                        res_text, err = extract_text_safely(response)
+                        final_payload = res_text if res_text else err
+                        
+                        if res_text and "[SCORE_UP]" in res_text:
+                            if "scored_questions" not in st.session_state:
+                                st.session_state.scored_questions = set()
+                            if q_key not in st.session_state.scored_questions:
+                                st.session_state.score += 10
+                                st.session_state.scored_questions.add(q_key)
+                        
+                        st.session_state.saved_explanations[q_key] = final_payload
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Lỗi kết nối đường truyền dữ liệu khảo thí: {e}")
 
-# 🚀 NÚT BẤM NỘP BÀI THI NÓI (XỬ LÝ FILE NHỊ PHÂN TỪ SIDEBAR AUDIO_INPUT)
+# LUỒNG HIỂN THỊ LẠI TOÀN BỘ THÔNG TIN BÀI GIẢI VÀ THÀNH PHẦN MỞ RỘNG KHI ĐÃ QUA LƯỢT NỘP
+if is_submitted and q_key in st.session_state.saved_explanations:
+    st.markdown("### 🔔 KẾT QUẢ KIỂM ĐỊNH TỪ HỆ THỐNG CHUYÊN GIA:")
+    render_custom_vstep_message(st.session_state.saved_explanations[q_key])
+
+# THỰC THI THU ÂM VÀ XỬ LÝ PHÂN HỆ NÓI TRỰC TIẾP TỪ THANH BÊN
 audio_data = st.sidebar.audio_input(
-    "Bấm nút tròn bên dưới để thu âm bài nói trực tiếp:",
+    "Ghi âm trực tiếp bài nói phản xạ:",
     key=f"mic_widget_{st.session_state.mic_key}"
 )
 
 if audio_data is not None:
     if st.sidebar.button("🚀 NỘP BÀI THI NÓI VSTEP", use_container_width=True):
         if not api_key:
-            st.sidebar.error("Vui lòng điền mã API Key để thẩm định giọng nói.")
+            st.sidebar.error("Vui lòng điền mã trực lưu để thẩm định giọng nói.")
         else:
             vstep_speech_command = f"""
             Đây là file ghi âm bài nói micro của tôi tại câu số {active_q['id']} phần {st.session_state.current_section} mã đề {selected_de}. Đề bài yêu cầu: '{display_prompt}'.
             Hãy thực hiện bóc băng âm thanh, chỉ viết ra text những từ nghe rõ tự tin, so sánh với câu mẫu chuẩn. Nhuộm đỏ từ phát âm lệch chuẩn.
             Toàn bộ câu mẫu và sửa lỗi bắt buộc trình bày 3 dòng interlinear ngắt hàng bằng thẻ <br>.
-            Gói toàn bộ sơ đồ cấu trúc câu Mind Map phân nhánh vào cặp thẻ [DIEN_GIAI_START] và [DIEN_GIAI_END].
+            Gói toàn bộ sơ đồ cấu trúc câu Mind Map phân nhánh và ma trận câu hỏi tham khảo vào cặp thẻ [DIEN_GIAI_START] và [DIEN_GIAI_END].
             """
-            with st.spinner("Hệ thống  đang xử lý và phân tách thính giác..."):
+            with st.spinner("Hệ thống xử lý đang phân tách thính giác ngôn ngữ..."):
                 try:
                     model = get_model()
                     contents = [{
@@ -418,16 +483,9 @@ if audio_data is not None:
                     res_text, err = extract_text_safely(response)
                     final_payload = res_text if res_text else err
                     
-                    st.session_state.messages.append({"role": "assistant", "content": final_payload})
+                    st.session_state.submitted_state[q_key] = "Đã thực hiện nộp dữ liệu ghi âm giọng nói."
+                    st.session_state.saved_explanations[q_key] = final_payload
                     st.session_state.mic_key += 1
                     st.rerun()
                 except Exception as e:
-                    st.error(f"Lỗi phân tích tệp micro: {e}")
-
-# 📜 BẢNG TIN  KẾT QUẢ VÀ  DIỄN GIẢI
-if st.session_state.messages:
-    st.markdown("---")
-    st.markdown("### 🔔 KẾT QUẢ:")
-    for message in st.session_state.messages[-1:]:
-        with st.chat_message(message["role"]):
-            render_custom_vstep_message(message["content"])
+                    st.error(f"Trục trặc xử lý tệp tin âm thanh đầu vào: {e}")
